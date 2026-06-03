@@ -17,15 +17,15 @@ const features = [
     badge: "neural.py",
     badgeClass: "badge-purple",
     desc: "A lightweight, dependency-free pseudo-neural transform derives every hash parameter from the input's feature vector — seed, chaos r-value, rotation schedule, and compression key.",
-    detail: "Two dense linear layers with LCG-derived weights map a 134-float feature vector to 16 control neurons. No NumPy or TensorFlow required.",
+    detail: "Two dense linear layers with LCG-derived weights map a 134-float feature vector to 16 control control values. No external ML framework required.",
   },
   {
     icon: Activity,
     title: "Chaos Theory Engine",
     badge: "chaos.py",
     badgeClass: "badge-orange",
-    desc: "The logistic map x[n+1] = r·x·(1−x) in its chaotic regime (r ∈ [3.57, 4.0]) generates a pseudo-random byte stream that is exquisitely sensitive to initial conditions.",
-    detail: "256-iteration warm-up discards transients. Tent map and Hénon map support coming in v0.3.",
+    desc: "A multi-attractor chaos generator leveraging the chaotic regimes of Logistic, Tent, and Hénon maps to produce a pseudo-random byte stream extremely sensitive to initial states.",
+    detail: "Adaptive selector triggers Logistic Map, Tent Map, or Hénon Map dynamically based on neural seed (seed % 3). Integrated periodic boundary wrapping.",
   },
   {
     icon: Shuffle,
@@ -49,7 +49,7 @@ const features = [
     badge: "feature.py",
     badgeClass: "badge-purple",
     desc: "Extracts a rich 134-float feature vector from raw input: length, Hamming weight, Shannon entropy, byte-frequency distribution, mean, variance, and bigram hashes.",
-    detail: "Bigram frequency encoding adds positional sensitivity — two inputs with identical byte histograms but different ordering produce different feature vectors.",
+    detail: "Optional NumPy acceleration provides 5x faster vectorized operations on large payloads, while preserving standard library pure-Python fallback.",
   },
   {
     icon: Gauge,
@@ -73,7 +73,7 @@ const features = [
     badge: "Pure Python 3.12",
     badgeClass: "badge-green",
     desc: "The entire ANCH core is implemented in pure Python 3.12 stdlib — no NumPy, no cryptography library, no external packages. Just install and go.",
-    detail: "Optional: rich for colored benchmark output. TensorFlow planned for v0.3 neural mode.",
+    detail: "Optional: rich for colored benchmark output. Web interface runs benchmark over connected local REST API.",
   },
 ];
 

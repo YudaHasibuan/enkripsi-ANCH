@@ -2,69 +2,83 @@
 import { 
   Milestone, 
   CheckCircle2, 
-  Circle 
+  Circle,
+  HelpCircle
 } from "lucide-react";
 
-const roadmap = [
+interface RoadmapItem {
+  text: string;
+  completed: boolean;
+}
+
+interface RoadmapPhase {
+  version: string;
+  status: "released" | "active" | "planned";
+  label: string;
+  badgeClass: string;
+  color: string;
+  items: RoadmapItem[];
+}
+
+const roadmap: RoadmapPhase[] = [
   {
     version: "v0.1",
     status: "released",
-    label: "Current Release",
+    label: "Foundation",
     badgeClass: "badge-green",
     color: "var(--anch-green)",
     items: [
-      "Core Hash Engine (feature → neural → chaos → permutation → compression)",
-      "Pure Python 3.12, zero runtime dependencies",
-      "Public API: hash, verify, hash_file, verify_file, avalanche, entropy, collision_test",
-      "Full CLI interface (anch hash, anch benchmark, …)",
-      "Comprehensive test suite (pytest)",
-      "pyproject.toml setup, pip-installable",
-      "Interactive showcase website",
+      { text: "Core Hash Engine (feature → neural → chaos → permutation → compression)", completed: true },
+      { text: "Pure Python 3.12, zero runtime dependencies", completed: true },
+      { text: "Public API: hash, verify, hash_file, avalanche, entropy, collision_test", completed: true },
+      { text: "Full CLI interface (anch hash, anch benchmark, …)", completed: true },
+      { text: "Comprehensive test suite (pytest)", completed: true },
+      { text: "pyproject.toml setup, pip-installable", completed: true },
+      { text: "Interactive showcase website", completed: true },
     ],
   },
   {
     version: "v0.2",
-    status: "planned",
-    label: "Next Milestone",
-    badgeClass: "badge-purple",
-    color: "var(--anch-purple)",
+    status: "released",
+    label: "Optimization",
+    badgeClass: "badge-green",
+    color: "var(--anch-green)",
     items: [
-      "Benchmark Suite interactive dashboard UI",
-      "REST API (FastAPI + Uvicorn) — POST /hash, /verify, /benchmark",
-      "Online Playground (server-side real ANCH hashing)",
-      "Performance: NumPy-accelerated feature extraction",
-      "MkDocs documentation site (Material theme)",
-      "GitHub Actions automated CI/CD pipeline",
+      { text: "Benchmark Suite interactive dashboard UI", completed: true },
+      { text: "REST API (FastAPI + Uvicorn) — POST /hash, /verify, /benchmark", completed: true },
+      { text: "Online Playground (server-side real ANCH hashing)", completed: true },
+      { text: "Performance: NumPy-accelerated feature extraction", completed: true },
+      { text: "MkDocs documentation site (Material theme)", completed: true },
+      { text: "GitHub Actions automated CI/CD pipeline", completed: true },
     ],
   },
   {
     version: "v0.3",
-    status: "planned",
-    label: "Future Scope",
-    badgeClass: "badge-orange",
-    color: "var(--anch-orange)",
+    status: "active",
+    label: "Cryptography",
+    badgeClass: "badge-purple",
+    color: "var(--anch-purple)",
     items: [
-      "Multi-Chaotic Engine: Tent Map + Hénon Map",
-      "TensorFlow integration (optional neural mode)",
-      "Dynamic S-Box key-schedule generation",
-      "Streaming hashing for large data pools",
-      "HMAC-ANCH mode for authentication",
-      "Language bindings: JS/WASM, Rust",
+      { text: "Multi-Chaotic Engine: Tent Map + Hénon Map", completed: true },
+      { text: "Adaptive Attractor selection (seed % 3)", completed: true },
+      { text: "Streaming hashing for large files / data pools", completed: true },
+      { text: "Dynamic S-Box key-schedule generation", completed: false },
+      { text: "HMAC-ANCH authentication mode support", completed: false },
+      { text: "Language bindings: JS/WASM or Rust ports", completed: false },
     ],
   },
   {
     version: "v1.0",
-    status: "future",
-    label: "Final Goal",
-    badgeClass: "badge-cyan",
-    color: "var(--anch-cyan)",
+    status: "planned",
+    label: "Final Scope",
+    badgeClass: "badge-orange",
+    color: "var(--anch-orange)",
     items: [
-      "Full public framework release",
-      "Complete developer SDK",
-      "Community plugin system",
-      "Formal third-party security audit",
-      "Academic research paper submission",
-      "1,000+ PyPI downloads milestone 🎉",
+      { text: "Full public framework production release", completed: false },
+      { text: "Complete developer SDK stable release", completed: false },
+      { text: "Formal third-party academic security audit", completed: false },
+      { text: "Academic research paper submission", completed: false },
+      { text: "1,000+ PyPI downloads milestone 🎉", completed: false },
     ],
   },
 ];
@@ -92,26 +106,28 @@ export default function RoadmapSection() {
         <div className="grid-4" style={{ gap: 20 }}>
           {roadmap.map((phase) => {
             const isReleased = phase.status === "released";
-            const isNext = phase.version === "v0.2";
+            const isActive = phase.status === "active";
+            const isPlanned = phase.status === "planned";
             return (
               <div
                 key={phase.version}
                 className="feature-card"
                 style={{
-                  opacity: isReleased ? 1 : 0.88,
                   borderColor: isReleased 
                     ? "rgba(0, 255, 170, 0.35)" 
-                    : isNext 
-                      ? "rgba(124, 93, 250, 0.4)" 
+                    : isActive 
+                      ? "rgba(124, 93, 250, 0.45)" 
                       : "rgba(124, 93, 250, 0.15)",
                   background: isReleased 
                     ? "rgba(21, 19, 45, 0.6)" 
-                    : "rgba(21, 19, 45, 0.4)",
+                    : isActive
+                      ? "rgba(25, 20, 55, 0.65)"
+                      : "rgba(21, 19, 45, 0.4)",
                   padding: "32px 24px",
                   boxShadow: isReleased 
                     ? "0 15px 40px rgba(0,0,0,0.5), 0 0 25px rgba(0,255,170,0.06)" 
-                    : isNext 
-                      ? "0 15px 40px rgba(0,0,0,0.5), 0 0 25px rgba(124,93,250,0.05)"
+                    : isActive 
+                      ? "0 15px 40px rgba(0,0,0,0.5), 0 0 25px rgba(124,93,250,0.08)"
                       : "0 10px 30px rgba(0,0,0,0.3)",
                   position: "relative",
                   display: "flex",
@@ -123,7 +139,7 @@ export default function RoadmapSection() {
                 {isReleased && (
                   <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: 2, background: "linear-gradient(90deg, transparent, var(--anch-green), transparent)" }} />
                 )}
-                {isNext && (
+                {isActive && (
                   <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: 2, background: "linear-gradient(90deg, transparent, var(--anch-purple), transparent)" }} />
                 )}
 
@@ -135,16 +151,16 @@ export default function RoadmapSection() {
                   
                   <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 14, padding: 0 }}>
                     {phase.items.map((item) => (
-                      <li key={item} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                      <li key={item.text} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
                         <span style={{ flexShrink: 0, marginTop: 3 }}>
-                          {isReleased ? (
+                          {item.completed ? (
                             <CheckCircle2 size={13} style={{ color: "var(--anch-green)" }} />
                           ) : (
                             <Circle size={13} style={{ color: "var(--anch-text-muted)" }} />
                           )}
                         </span>
-                        <span style={{ color: isReleased ? "var(--anch-text)" : "var(--anch-text-dim)", fontSize: "0.82rem", lineHeight: 1.5, fontWeight: 500 }}>
-                          {item}
+                        <span style={{ color: item.completed ? "var(--anch-text)" : "var(--anch-text-dim)", fontSize: "0.82rem", lineHeight: 1.5, fontWeight: 500 }}>
+                          {item.text}
                         </span>
                       </li>
                     ))}
