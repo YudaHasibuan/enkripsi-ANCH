@@ -1,4 +1,9 @@
 "use client";
+import { 
+  Milestone, 
+  CheckCircle2, 
+  Circle 
+} from "lucide-react";
 
 const roadmap = [
   {
@@ -62,14 +67,17 @@ const roadmap = [
 
 export default function RoadmapSection() {
   return (
-    <section id="roadmap" className="section" style={{ background: "rgba(13,11,30,0.5)" }}>
+    <section id="roadmap" className="section" style={{ background: "rgba(13,11,30,0.5)", position: "relative" }}>
       <div className="container">
         <div style={{ textAlign: "center", marginBottom: 60 }}>
-          <span className="badge badge-purple" style={{ marginBottom: 16, display: "inline-block" }}>🗺️ Roadmap</span>
-          <h2 style={{ fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 800, marginBottom: 16 }}>
+          <span className="badge badge-purple" style={{ marginBottom: 16, padding: "5px 14px", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <Milestone size={12} />
+            <span>Roadmap</span>
+          </span>
+          <h2 style={{ fontSize: "clamp(2rem, 5vw, 3rem)", fontWeight: 800, marginBottom: 16, letterSpacing: "-0.02em" }}>
             Where We&apos;re <span className="gradient-text">Headed</span>
           </h2>
-          <p style={{ color: "var(--anch-text-dim)", maxWidth: 480, margin: "0 auto" }}>
+          <p style={{ color: "var(--anch-text-dim)", maxWidth: 480, margin: "0 auto", fontSize: "1.05rem" }}>
             ANCH is evolving from a proof-of-concept into a full adaptive hashing platform.
           </p>
         </div>
@@ -81,18 +89,24 @@ export default function RoadmapSection() {
               className="feature-card"
               style={{
                 opacity: phase.status === "released" ? 1 : phase.status === "planned" ? 0.9 : 0.7,
-                borderColor: phase.status === "released" ? "rgba(0,255,170,0.3)" : "var(--anch-border)",
+                borderColor: phase.status === "released" ? "rgba(0,255,170,0.3)" : "rgba(42,38,80,0.6)",
+                background: "rgba(22, 20, 48, 0.45)",
+                padding: "28px 24px"
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <span style={{ fontSize: "1.4rem", fontWeight: 900, color: "var(--anch-text)" }}>{phase.version}</span>
-                <span className={`badge ${phase.badgeClass}`}>{phase.label}</span>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                <span style={{ fontSize: "1.5rem", fontWeight: 900, color: "var(--anch-text)", letterSpacing: "-0.01em" }}>{phase.version}</span>
+                <span className={`badge ${phase.badgeClass}`} style={{ padding: "3px 10px", fontSize: "0.7rem" }}>{phase.label}</span>
               </div>
-              <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
+              <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 12, padding: 0 }}>
                 {phase.items.map((item) => (
-                  <li key={item} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-                    <span style={{ color: phase.status === "released" ? "var(--anch-green)" : "var(--anch-text-muted)", flexShrink: 0, marginTop: 2 }}>
-                      {phase.status === "released" ? "✓" : "○"}
+                  <li key={item} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                    <span style={{ flexShrink: 0, marginTop: 2 }}>
+                      {phase.status === "released" ? (
+                        <CheckCircle2 size={14} style={{ color: "var(--anch-green)" }} />
+                      ) : (
+                        <Circle size={14} style={{ color: "var(--anch-text-muted)" }} />
+                      )}
                     </span>
                     <span style={{ color: phase.status === "released" ? "var(--anch-text-dim)" : "var(--anch-text-muted)", fontSize: "0.82rem", lineHeight: 1.5 }}>
                       {item}

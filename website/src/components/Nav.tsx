@@ -47,7 +47,7 @@ export default function Nav() {
 
         {/* CTA */}
         <div style={{ display: "flex", gap: 12, alignItems: "center" }} className="hidden-mobile">
-          <a href="https://github.com/anch-framework/anch" target="_blank" rel="noopener" className="btn-secondary" style={{ padding: "8px 18px", fontSize: "0.85rem" }}>
+          <a href="https://github.com/YudaHasibuan/enkripsi-ANCH" target="_blank" rel="noopener" className="btn-secondary" style={{ padding: "8px 18px", fontSize: "0.85rem" }}>
             GitHub
           </a>
           <a href="#install" className="btn-primary" style={{ padding: "8px 18px", fontSize: "0.85rem" }}>

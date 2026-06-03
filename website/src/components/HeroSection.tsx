@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { Sparkles, Play, Terminal } from "lucide-react";
 import ChaosVisualizer from "./ChaosVisualizer";
 
 const DEMO_DIGESTS: Record<string, string> = {
@@ -33,6 +34,8 @@ export default function HeroSection() {
   const [digest, setDigest] = useState(DEMO_DIGESTS["hello world"]);
   const [typing, setTyping] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const repoUrl = "https://github.com/YudaHasibuan/enkripsi-ANCH";
 
   // Simulated hash (client-side demo — real hash runs server-side)
   function simulateHash(text: string): string {
@@ -69,8 +72,9 @@ export default function HeroSection() {
 
         {/* Badge */}
         <div className="animate-fade-up" style={{ marginBottom: 24 }}>
-          <span className="badge badge-purple" style={{ padding: "6px 16px", border: "1px solid rgba(139,109,255,0.4)", boxShadow: "0 0 15px rgba(139,109,255,0.15)" }}>
-            🚀 Open-Source Adaptive Hashing · v0.1.0 Released
+          <span className="badge badge-purple" style={{ padding: "6px 16px", border: "1px solid rgba(139,109,255,0.4)", boxShadow: "0 0 15px rgba(139,109,255,0.15)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <Sparkles size={12} />
+            <span>Open-Source Adaptive Hashing · v0.1.0 Released</span>
           </span>
         </div>
 
@@ -90,13 +94,16 @@ export default function HeroSection() {
         {/* CTA buttons */}
         <div className="animate-fade-up delay-300" style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", marginBottom: 60 }}>
           <a href="#install" className="btn-primary" id="hero-install-btn">
-            pip install anch-hash
+            <Terminal size={16} />
+            <span>pip install anch-hash</span>
           </a>
           <a href="#playground" className="btn-secondary" id="hero-playground-btn">
-            🎮 Try Interactive Playground
+            <Play size={16} />
+            <span>Try Interactive Playground</span>
           </a>
-          <a href="https://github.com/anch-framework/anch" target="_blank" rel="noopener" className="btn-secondary" id="hero-github-btn">
-            ⭐ View on GitHub
+          <a href={repoUrl} target="_blank" rel="noopener" className="btn-secondary" id="hero-github-btn">
+            <svg viewBox="0 0 24 24" width={16} height={16} stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" /><path d="M9 18c-4.51 2-5-2-7-2" /></svg>
+            <span>View on GitHub</span>
           </a>
         </div>
 
@@ -104,7 +111,10 @@ export default function HeroSection() {
         <div className="animate-fade-up delay-400 glass" style={{ maxWidth: 940, margin: "0 auto", borderRadius: 20, padding: 32, boxShadow: "0 20px 50px rgba(0,0,0,0.5), 0 0 40px rgba(139,109,255,0.05)" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span className="badge badge-green">🟢 Live Engine Simulator</span>
+              <span className="badge badge-green" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--anch-green)", display: "inline-block" }} className="animate-pulse" />
+                <span>Live Engine Simulator</span>
+              </span>
               <span style={{ color: "var(--anch-text-muted)", fontSize: "0.82rem" }}>Interactive Bifurcation Wave</span>
             </div>
             <span style={{ fontSize: "0.78rem", color: "var(--anch-text-muted)", fontFamily: "var(--font-mono)" }}>OUTPUT_BITS = 256</span>
@@ -113,7 +123,7 @@ export default function HeroSection() {
           <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 28, alignItems: "center" }} className="demo-grid">
             {/* Left Column: Interactive Input / Code / Output */}
             <div style={{ textAlign: "left" }}>
-              <div className="code-block" style={{ marginBottom: 16, fontSize: "0.82rem", background: "rgba(10, 8, 26, 0.8)" }}>
+              <div className="code-block" style={{ marginBottom: 16, fontSize: "0.82rem", background: "rgba(10, 8, 26, 0.8)", border: "1px solid rgba(42,38,80,0.5)" }}>
                 <span className="kw">import</span> anch
                 <br />
                 digest = anch.<span className="fn">hash</span>(<span className="st">&quot;{inputText}&quot;</span>)
@@ -154,9 +164,9 @@ export default function HeroSection() {
                 key={sample}
                 onClick={() => handleChange(sample)}
                 style={{
-                  background: inputText === sample ? "rgba(139,109,255,0.15)" : "rgba(139,109,255,0.04)",
+                  background: inputText === sample ? "rgba(139,109,255,0.12)" : "rgba(22,20,48,0.3)",
                   border: "1px solid",
-                  borderColor: inputText === sample ? "var(--anch-purple)" : "var(--anch-border)",
+                  borderColor: inputText === sample ? "var(--anch-purple)" : "rgba(42,38,80,0.6)",
                   borderRadius: 6, padding: "5px 12px", color: "var(--anch-text-dim)",
                   cursor: "pointer", fontSize: "0.78rem", fontFamily: "var(--font-mono)",
                   transition: "all 0.2s",
@@ -165,7 +175,7 @@ export default function HeroSection() {
                   if (inputText !== sample) e.currentTarget.style.borderColor = "var(--anch-purple)";
                 }}
                 onMouseOut={(e) => {
-                  if (inputText !== sample) e.currentTarget.style.borderColor = "var(--anch-border)";
+                  if (inputText !== sample) e.currentTarget.style.borderColor = "rgba(42,38,80,0.6)";
                 }}
               >
                 {sample}
@@ -182,7 +192,7 @@ export default function HeroSection() {
             { number: "5", label: "Orchestration Stages", color: "var(--anch-cyan)" },
             { number: "v0.1.0", label: "PyPI Package Release", color: "var(--anch-orange)" },
           ].map((s) => (
-            <div key={s.label} className="stat-card" style={{ background: "rgba(20,18,48,0.4)", border: "1px solid rgba(42,38,80,0.5)" }}>
+            <div key={s.label} className="stat-card" style={{ background: "rgba(22, 20, 48, 0.45)", border: "1px solid rgba(42,38,80,0.6)", boxShadow: "0 8px 30px rgba(0,0,0,0.2)" }}>
               <div className="stat-number" style={{ color: s.color, textShadow: `0 0 20px ${s.color}22` }}>{s.number}</div>
               <div style={{ color: "var(--anch-text-muted)", fontSize: "0.8rem", fontWeight: 500 }}>{s.label}</div>
             </div>
