@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { 
   Lock, 
   Zap, 
@@ -8,7 +8,7 @@ import {
   Check, 
   Sliders, 
   Fingerprint,
-  RefreshCw
+  Cpu
 } from "lucide-react";
 
 // ── Client-side ANCH simulation ──────────
@@ -78,22 +78,133 @@ export default function PlaygroundSection() {
   const [feistelRounds, setFeistelRounds] = useState(8);
   const [copied, setCopied] = useState(false);
 
-  const digest = simHash(input, chaosR, feistelRounds);
-  const digest2 = simHash(input2, chaosR, feistelRounds);
-  const entropy = simEntropy(digest).toFixed(4);
-  const avalanchePercent = simAvalanche(digest, digest2).toFixed(2);
-  const sha256Sim = simHash("sha256:" + input, 3.99, 12); // reference hash
+  // API Integration States
+  const [isApiActive, setIsApiActive] = useState(false);
+  const [apiLoading, setApiLoading] = useState(false);
+  const [apiDigest1, setApiDigest1] = useState("");
+  const [apiDigest2, setApiDigest2] = useState("");
+  const [apiEntropyVal, setApiEntropyVal] = useState<number | null>(null);
+  const [apiAvalancheVal, setApiAvalancheVal] = useState<number | null>(null);
+  const [apiBitFlipMatrix, setApiBitFlipMatrix] = useState<boolean[]>([]);
+  const [timeTakenMs, setTimeTakenMs] = useState<number | null>(null);
+  const [neuralParams, setNeuralParams] = useState<any>(null);
+
+  // Ping API Server
+  useEffect(() => {
+    const checkApi = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/", { signal: AbortSignal.timeout(1500) });
+        const data = await res.json();
+        if (data.status === "online") {
+          setIsApiActive(true);
+        }
+      } catch (e) {
+        setIsApiActive(false);
+      }
+    };
+    checkApi();
+    const interval = setInterval(checkApi, 5000); // Check every 5s
+    return () => clearInterval(interval);
+  }, []);
+
+  // Fetch real hash metrics when inputs change (if API is active)
+  useEffect(() => {
+    if (!isApiActive) return;
+
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      setApiLoading(true);
+      try {
+        // Fetch Hash for Payload A
+        const hashRes1 = await fetch("http://localhost:8000/hash", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data: input }),
+          signal: controller.signal
+        });
+        const hashData1 = await hashRes1.json();
+        setApiDigest1(hashData1.digest);
+        setTimeTakenMs(hashData1.time_taken_ms);
+        setNeuralParams(hashData1.neural_params);
+
+        // Fetch Hash for Payload B
+        const hashRes2 = await fetch("http://localhost:8000/hash", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data: input2 }),
+          signal: controller.signal
+        });
+        const hashData2 = await hashRes2.json();
+        setApiDigest2(hashData2.digest);
+
+        // Fetch Avalanche metrics
+        const avRes = await fetch("http://localhost:8000/avalanche", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data_a: input, data_b: input2 }),
+          signal: controller.signal
+        });
+        const avData = await avRes.json();
+        setApiAvalancheVal(avData.avalanche_percentage);
+
+        // Fetch Entropy for Payload A
+        const entRes = await fetch("http://localhost:8000/entropy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ digest: hashData1.digest }),
+          signal: controller.signal
+        });
+        const entData = await entRes.json();
+        setApiEntropyVal(entData.entropy);
+
+        // Calculate Bit Matrix
+        const bits1 = hexToBits(hashData1.digest);
+        const bits2 = hexToBits(hashData2.digest);
+        setApiBitFlipMatrix(bits1.map((b1, i) => b1 !== bits2[i]));
+      } catch (err: any) {
+        if (err.name !== "AbortError") {
+          console.error("Playground API fetch failed", err);
+        }
+      } finally {
+        setApiLoading(false);
+      }
+    }, 400);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [input, input2, isApiActive]);
+
+  // Compute final display outputs
+  const simDigest1 = simHash(input, chaosR, feistelRounds);
+  const simDigest2 = simHash(input2, chaosR, feistelRounds);
+
+  const activeDigest = isApiActive ? (apiDigest1 || simDigest1) : simDigest1;
+  const activeDigest2 = isApiActive ? (apiDigest2 || simDigest2) : simDigest2;
+  
+  const activeEntropy = isApiActive 
+    ? (apiEntropyVal !== null ? apiEntropyVal.toFixed(4) : simEntropy(simDigest1).toFixed(4))
+    : simEntropy(simDigest1).toFixed(4);
+
+  const activeAvalanche = isApiActive
+    ? (apiAvalancheVal !== null ? apiAvalancheVal.toFixed(2) : simAvalanche(simDigest1, simDigest2).toFixed(2))
+    : simAvalanche(simDigest1, simDigest2).toFixed(2);
+
+  const sha256Sim = simHash("sha256:" + input, 3.99, 12);
+
+  // Bit Matrix rendering
+  const activeBits1 = hexToBits(activeDigest);
+  const activeBits2 = hexToBits(activeDigest2);
+  const activeBitFlipMatrix = isApiActive && apiBitFlipMatrix.length > 0 
+    ? apiBitFlipMatrix 
+    : activeBits1.map((b1, i) => b1 !== activeBits2[i]);
 
   const copy = () => {
-    navigator.clipboard.writeText(digest);
+    navigator.clipboard.writeText(activeDigest);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
-
-  // Compare bit differences between digest and digest2
-  const bits1 = hexToBits(digest);
-  const bits2 = hexToBits(digest2);
-  const bitFlipMatrix = bits1.map((b1, i) => b1 !== bits2[i]);
 
   const tabs = [
     { id: "hash" as const,      label: "Hash",      icon: Lock },
@@ -113,8 +224,16 @@ export default function PlaygroundSection() {
             Try ANCH <span className="gradient-text">Right Now</span>
           </h2>
           <p style={{ color: "var(--anch-text-dim)", maxWidth: 520, margin: "0 auto", fontSize: "1.05rem", lineHeight: 1.8 }}>
-            Interactive browser simulation. Tune the neural and chaos parameters below to visualize avalanche cascades and entropy distributions.
+            Interactive cryptography testing. Tune parameters or connect the backend to witness the real-time neural network parameter generator.
           </p>
+
+          {/* API Server status indicator banner */}
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 20, padding: "8px 16px", borderRadius: "100px", background: isApiActive ? "rgba(0, 255, 170, 0.08)" : "rgba(255, 107, 53, 0.08)", border: isApiActive ? "1px solid rgba(0, 255, 170, 0.25)" : "1px solid rgba(255, 107, 53, 0.25)" }}>
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: isApiActive ? "var(--anch-green)" : "var(--anch-orange)", display: "inline-block", boxShadow: isApiActive ? "0 0 10px var(--anch-green)" : "none" }} />
+            <span style={{ fontSize: "0.78rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.03em", color: isApiActive ? "var(--anch-green)" : "var(--anch-orange)" }}>
+              {isApiActive ? "Python API server: Connected (Adaptive Mode Active)" : "Python API server: Offline (Simulator Mode Active)"}
+            </span>
+          </div>
         </div>
 
         <div className="glass" style={{ maxWidth: 940, margin: "0 auto", borderRadius: 24, padding: "36px 32px", border: "1px solid rgba(124, 93, 250, 0.25)" }}>
@@ -154,47 +273,56 @@ export default function PlaygroundSection() {
               })}
             </div>
 
-            {/* Sliders Panel */}
-            <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "center" }} className="sliders-container">
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <Sliders size={14} style={{ color: "var(--anch-purple)" }} />
-                <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--anch-text-dim)", textTransform: "uppercase" }}>Tuning:</span>
+            {/* Tuning Panel / Neural Info */}
+            {isApiActive ? (
+              <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+                <Cpu size={16} className="float-element" style={{ color: "var(--anch-green)" }} />
+                <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--anch-text-dim)" }}>
+                  Adaptive parameters derived by Neural Generator W1/W2
+                </span>
               </div>
-              
-              {/* Slider 1: Chaos R */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", width: 140 }}>
-                  <span style={{ fontSize: "0.72rem", color: "var(--anch-text-muted)", fontWeight: 600 }}>Chaos r parameter</span>
-                  <span style={{ fontSize: "0.72rem", color: "var(--anch-cyan)", fontFamily: "var(--font-mono)", fontWeight: 700 }}>{chaosR.toFixed(3)}</span>
+            ) : (
+              <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "center" }} className="sliders-container">
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <Sliders size={14} style={{ color: "var(--anch-purple)" }} />
+                  <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--anch-text-dim)", textTransform: "uppercase" }}>Tuning:</span>
                 </div>
-                <input 
-                  type="range" 
-                  min="3.57" 
-                  max="4.00" 
-                  step="0.01" 
-                  value={chaosR} 
-                  onChange={(e) => setChaosR(parseFloat(e.target.value))}
-                  style={{ width: 140, accentColor: "var(--anch-cyan)", cursor: "pointer" }}
-                />
-              </div>
+                
+                {/* Slider 1: Chaos R */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", width: 140 }}>
+                    <span style={{ fontSize: "0.72rem", color: "var(--anch-text-muted)", fontWeight: 600 }}>Chaos r parameter</span>
+                    <span style={{ fontSize: "0.72rem", color: "var(--anch-cyan)", fontFamily: "var(--font-mono)", fontWeight: 700 }}>{chaosR.toFixed(3)}</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="3.57" 
+                    max="4.00" 
+                    step="0.01" 
+                    value={chaosR} 
+                    onChange={(e) => setChaosR(parseFloat(e.target.value))}
+                    style={{ width: 140, accentColor: "var(--anch-cyan)", cursor: "pointer" }}
+                  />
+                </div>
 
-              {/* Slider 2: Feistel rounds */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", width: 140 }}>
-                  <span style={{ fontSize: "0.72rem", color: "var(--anch-text-muted)", fontWeight: 600 }}>Feistel Rounds</span>
-                  <span style={{ fontSize: "0.72rem", color: "var(--anch-purple-bright)", fontFamily: "var(--font-mono)", fontWeight: 700 }}>{feistelRounds} rounds</span>
+                {/* Slider 2: Feistel rounds */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", width: 140 }}>
+                    <span style={{ fontSize: "0.72rem", color: "var(--anch-text-muted)", fontWeight: 600 }}>Feistel Rounds</span>
+                    <span style={{ fontSize: "0.72rem", color: "var(--anch-purple-bright)", fontFamily: "var(--font-mono)", fontWeight: 700 }}>{feistelRounds} rounds</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="4" 
+                    max="16" 
+                    step="1" 
+                    value={feistelRounds} 
+                    onChange={(e) => setFeistelRounds(parseInt(e.target.value))}
+                    style={{ width: 140, accentColor: "var(--anch-purple)", cursor: "pointer" }}
+                  />
                 </div>
-                <input 
-                  type="range" 
-                  min="4" 
-                  max="16" 
-                  step="1" 
-                  value={feistelRounds} 
-                  onChange={(e) => setFeistelRounds(parseInt(e.target.value))}
-                  style={{ width: 140, accentColor: "var(--anch-purple)", cursor: "pointer" }}
-                />
               </div>
-            </div>
+            )}
           </div>
 
           {/* Hash tab */}
@@ -215,10 +343,15 @@ export default function PlaygroundSection() {
                 <div>
                   <div style={{ fontSize: "0.8rem", color: "var(--anch-text-dim)", marginBottom: 8, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
                     <Fingerprint size={14} style={{ color: "var(--anch-cyan)" }} />
-                    <span>ANCH Simulated Hash Digest</span>
+                    <span>ANCH {isApiActive ? "Real Python" : "Simulated"} Hash Digest</span>
                   </div>
                   <div className="result-box" style={{ color: "var(--anch-cyan)", wordBreak: "break-all", fontSize: "0.88rem", background: "rgba(6, 4, 15, 0.8)", border: "1px solid rgba(124, 93, 250, 0.2)", minHeight: 74, display: "flex", alignItems: "center" }}>
-                    {digest}
+                    {apiLoading ? (
+                      <span style={{ color: "var(--anch-text-muted)", display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ display: "inline-block", width: 12, height: 12, border: "2px solid rgba(0, 240, 255, 0.2)", borderTopColor: "var(--anch-cyan)", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} />
+                        Encrypting via Python backend...
+                      </span>
+                    ) : activeDigest}
                   </div>
                   <button 
                     onClick={copy} 
@@ -242,11 +375,38 @@ export default function PlaygroundSection() {
                 </div>
               </div>
 
+              {/* Neural parameters card if active */}
+              {isApiActive && neuralParams && (
+                <div style={{ marginTop: 24, padding: 18, background: "rgba(124, 93, 250, 0.05)", border: "1px solid rgba(124, 93, 250, 0.2)", borderRadius: 14 }}>
+                  <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--anch-purple-bright)", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                    <Cpu size={14} />
+                    <span>Adaptive Neural Parameters Generated (Deterministic to payload)</span>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }} className="grid-3">
+                    <div style={{ fontSize: "0.75rem" }}>
+                      <span style={{ color: "var(--anch-text-muted)" }}>Logistic R: </span>
+                      <span style={{ color: "var(--anch-green)", fontFamily: "var(--font-mono)", fontWeight: 700 }}>{parseFloat(neuralParams.r_value).toFixed(6)}</span>
+                    </div>
+                    <div style={{ fontSize: "0.75rem" }}>
+                      <span style={{ color: "var(--anch-text-muted)" }}>Feistel Rounds: </span>
+                      <span style={{ color: "var(--anch-cyan)", fontFamily: "var(--font-mono)", fontWeight: 700 }}>{neuralParams.round_count}</span>
+                    </div>
+                    <div style={{ fontSize: "0.75rem" }}>
+                      <span style={{ color: "var(--anch-text-muted)" }}>Chaotic Seed: </span>
+                      <span style={{ color: "var(--anch-purple-bright)", fontFamily: "var(--font-mono)", fontWeight: 700, wordBreak: "break-all" }}>{neuralParams.seed.slice(0, 16)}...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Bottom Metadata Summary */}
               <div style={{ marginTop: 24, padding: 18, background: "rgba(6, 4, 15, 0.75)", border: "1px solid rgba(124, 93, 250, 0.15)", borderRadius: 14, display: "flex", gap: 32, flexWrap: "wrap" }}>
                 <div><div style={{ fontSize: "0.72rem", color: "var(--anch-text-muted)", fontWeight: 700, textTransform: "uppercase" }}>Digest Output Size</div><div style={{ fontWeight: 800, color: "var(--anch-green)", fontSize: "0.95rem" }}>256 bits (32 bytes)</div></div>
-                <div><div style={{ fontSize: "0.72rem", color: "var(--anch-text-muted)", fontWeight: 700, textTransform: "uppercase" }}>Shannon Entropy</div><div style={{ fontWeight: 800, color: "var(--anch-purple-bright)", fontSize: "0.95rem" }}>{entropy} bits/byte</div></div>
-                <div><div style={{ fontSize: "0.72rem", color: "var(--anch-text-muted)", fontWeight: 700, textTransform: "uppercase" }}>Input Size</div><div style={{ fontWeight: 800, color: "var(--anch-cyan)", fontSize: "0.95rem" }}>{new TextEncoder().encode(input).length} bytes</div></div>
+                <div><div style={{ fontSize: "0.72rem", color: "var(--anch-text-muted)", fontWeight: 700, textTransform: "uppercase" }}>Shannon Entropy</div><div style={{ fontWeight: 800, color: "var(--anch-purple-bright)", fontSize: "0.95rem" }}>{activeEntropy} bits/byte</div></div>
+                {timeTakenMs !== null && isApiActive && (
+                  <div><div style={{ fontSize: "0.72rem", color: "var(--anch-text-muted)", fontWeight: 700, textTransform: "uppercase" }}>API Exec Time</div><div style={{ fontWeight: 800, color: "var(--anch-cyan)", fontSize: "0.95rem" }}>{timeTakenMs.toFixed(4)} ms</div></div>
+                )}
+                <div><div style={{ fontSize: "0.72rem", color: "var(--anch-text-muted)", fontWeight: 700, textTransform: "uppercase" }}>Input Size</div><div style={{ fontWeight: 800, color: "var(--anch-text)", fontSize: "0.95rem" }}>{new TextEncoder().encode(input).length} bytes</div></div>
               </div>
             </div>
           )}
@@ -279,7 +439,7 @@ export default function PlaygroundSection() {
                     maxWidth: 320, 
                     margin: "0 auto" 
                   }}>
-                    {bitFlipMatrix.map((isFlipped, idx) => (
+                    {activeBitFlipMatrix.map((isFlipped, idx) => (
                       <div 
                         key={idx} 
                         style={{
@@ -314,12 +474,12 @@ export default function PlaygroundSection() {
                   <div style={{ background: "rgba(6, 4, 15, 0.8)", border: "1px solid rgba(124,93,250,0.15)", borderRadius: 16, padding: 24 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12, alignItems: "flex-end" }}>
                       <span style={{ color: "var(--anch-text-dim)", fontSize: "0.85rem", fontWeight: 700 }}>Avalanche Ratio</span>
-                      <span style={{ fontWeight: 900, fontSize: "2.1rem", color: parseFloat(avalanchePercent) > 40 ? "var(--anch-green)" : "var(--anch-orange)", lineHeight: 1 }}>{avalanchePercent}%</span>
+                      <span style={{ fontWeight: 900, fontSize: "2.1rem", color: parseFloat(activeAvalanche) > 40 ? "var(--anch-green)" : "var(--anch-orange)", lineHeight: 1 }}>{activeAvalanche}%</span>
                     </div>
                     
                     {/* Bar */}
                     <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 100, height: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,0.02)" }}>
-                      <div style={{ width: `${avalanchePercent}%`, height: "100%", background: "linear-gradient(90deg, var(--anch-purple), var(--anch-cyan))", borderRadius: 100, transition: "width 0.4s cubic-bezier(0.16, 1, 0.3, 1)", boxShadow: "0 0 15px rgba(0, 240, 255, 0.5)" }} />
+                      <div style={{ width: `${activeAvalanche}%`, height: "100%", background: "linear-gradient(90deg, var(--anch-purple), var(--anch-cyan))", borderRadius: 100, transition: "width 0.4s cubic-bezier(0.16, 1, 0.3, 1)", boxShadow: "0 0 15px rgba(0, 240, 255, 0.5)" }} />
                     </div>
                     
                     <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
@@ -346,16 +506,16 @@ export default function PlaygroundSection() {
               <div style={{ background: "rgba(6, 4, 15, 0.8)", border: "1px solid rgba(124,93,250,0.15)", borderRadius: 18, padding: 24, marginBottom: 20 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12, alignItems: "flex-end" }}>
                   <span style={{ color: "var(--anch-text-dim)", fontSize: "0.85rem", fontWeight: 700 }}>Shannon Entropy Index</span>
-                  <span style={{ fontWeight: 900, fontSize: "2.1rem", color: "var(--anch-purple-bright)", lineHeight: 1 }}>{entropy} <span style={{ fontSize: "1rem", fontWeight: 500, color: "var(--anch-text-muted)" }}>bits/byte</span></span>
+                  <span style={{ fontWeight: 900, fontSize: "2.1rem", color: "var(--anch-purple-bright)", lineHeight: 1 }}>{activeEntropy} <span style={{ fontSize: "1rem", fontWeight: 500, color: "var(--anch-text-muted)" }}>bits/byte</span></span>
                 </div>
                 
                 {/* Bar */}
                 <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 100, height: 12, overflow: "hidden", border: "1px solid rgba(255,255,255,0.02)" }}>
-                  <div style={{ width: `${(parseFloat(entropy) / 8) * 100}%`, height: "100%", background: "linear-gradient(90deg, var(--anch-purple), var(--anch-purple-bright))", borderRadius: 100, transition: "width 0.4s cubic-bezier(0.16, 1, 0.3, 1)", boxShadow: "0 0 10px rgba(157, 133, 255, 0.4)" }} />
+                  <div style={{ width: `${(parseFloat(activeEntropy) / 8) * 100}%`, height: "100%", background: "linear-gradient(90deg, var(--anch-purple), var(--anch-purple-bright))", borderRadius: 100, transition: "width 0.4s cubic-bezier(0.16, 1, 0.3, 1)", boxShadow: "0 0 10px rgba(157, 133, 255, 0.4)" }} />
                 </div>
                 
                 <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
-                  <span style={{ fontSize: "0.72rem", color: "var(--anch-text-muted)" }}>0 (Highly Predictable)</span>
+                  <span style={{ fontSize: "0.72rem", color: "var(--anch-text-muted)" }}>0 (Predictable)</span>
                   <span style={{ fontSize: "0.72rem", color: "var(--anch-green)", fontWeight: 700 }}>Perfect Random Ideal: 8.0 bits/byte</span>
                 </div>
               </div>
@@ -369,6 +529,10 @@ export default function PlaygroundSection() {
       </div>
 
       <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
         @media (max-width: 768px) {
           .avalanche-grid {
             grid-template-columns: 1fr !important;

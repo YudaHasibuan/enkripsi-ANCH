@@ -15,6 +15,12 @@ import struct
 import math
 from typing import Union
 
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
+
 
 def extract_features(data: bytes) -> dict:
     """
@@ -54,53 +60,72 @@ def extract_features(data: bytes) -> dict:
 
     n = len(data)
 
-    # -----------------------------------------------------------------
-    # Bit extraction — Hamming weight
-    # -----------------------------------------------------------------
-    bit_count = sum(bin(b).count("1") for b in data)
+    if HAS_NUMPY:
+        arr = np.frombuffer(data, dtype=np.uint8)
+        
+        # 1. Hamming Weight (bit count) via numpy bit operations
+        bit_count = int(np.unpackbits(arr).sum())
 
-    # -----------------------------------------------------------------
-    # Byte frequency distribution
-    # -----------------------------------------------------------------
-    freq = [0] * 256
-    for b in data:
-        freq[b] += 1
-    byte_freq = [f / n for f in freq]
+        # 2. Byte frequency distribution
+        freq, _ = np.histogram(arr, bins=np.arange(257))
+        byte_freq = (freq / n).tolist()
 
-    # -----------------------------------------------------------------
-    # Shannon entropy
-    # -----------------------------------------------------------------
-    entropy_val = 0.0
-    for f in byte_freq:
-        if f > 0.0:
-            entropy_val -= f * math.log2(f)
+        # 3. Shannon entropy
+        p = freq[freq > 0] / n
+        entropy_val = float(-np.sum(p * np.log2(p)))
 
-    # -----------------------------------------------------------------
-    # Checksum (XOR fold)
-    # -----------------------------------------------------------------
-    checksum = 0
-    for b in data:
-        checksum ^= b
+        # 4. Checksum (XOR fold)
+        checksum = int(np.bitwise_xor.reduce(arr))
 
-    # -----------------------------------------------------------------
-    # Mean and variance of byte values
-    # -----------------------------------------------------------------
-    mean = sum(data) / n
-    variance = sum((b - mean) ** 2 for b in data) / n
+        # 5. Mean and variance of byte values
+        mean = float(arr.mean())
+        variance = float(arr.var())
 
-    # -----------------------------------------------------------------
-    # Bigram frequency hash — compact 64-element vector
-    # Encodes positional byte-pair transitions, adds order sensitivity.
-    # -----------------------------------------------------------------
-    ngram_hash = [0.0] * 64
-    if n > 1:
-        for i in range(n - 1):
-            pair_val = (data[i] << 8) | data[i + 1]
-            bucket = pair_val % 64
-            ngram_hash[bucket] += 1.0
-        # Normalize
-        max_ngram = max(ngram_hash) or 1.0
-        ngram_hash = [v / max_ngram for v in ngram_hash]
+        # 6. Bigram frequency hash
+        ngram_hash = [0.0] * 64
+        if n > 1:
+            pairs = (arr[:-1].astype(np.uint16) << 8) | arr[1:]
+            buckets = pairs % 64
+            bucket_counts = np.bincount(buckets, minlength=64)[:64]
+            max_ngram = bucket_counts.max() or 1.0
+            ngram_hash = (bucket_counts / max_ngram).tolist()
+    else:
+        # -----------------------------------------------------------------
+        # Fallback Pure Python (Zero Dependencies)
+        # -----------------------------------------------------------------
+        # Bit extraction — Hamming weight
+        bit_count = sum(bin(b).count("1") for b in data)
+
+        # Byte frequency distribution
+        freq = [0] * 256
+        for b in data:
+            freq[b] += 1
+        byte_freq = [f / n for f in freq]
+
+        # Shannon entropy
+        entropy_val = 0.0
+        for f in byte_freq:
+            if f > 0.0:
+                entropy_val -= f * math.log2(f)
+
+        # Checksum (XOR fold)
+        checksum = 0
+        for b in data:
+            checksum ^= b
+
+        # Mean and variance of byte values
+        mean = sum(data) / n
+        variance = sum((b - mean) ** 2 for b in data) / n
+
+        # Bigram frequency hash — compact 64-element vector
+        ngram_hash = [0.0] * 64
+        if n > 1:
+            for i in range(n - 1):
+                pair_val = (data[i] << 8) | data[i + 1]
+                bucket = pair_val % 64
+                ngram_hash[bucket] += 1.0
+            max_ngram = max(ngram_hash) or 1.0
+            ngram_hash = [v / max_ngram for v in ngram_hash]
 
     return {
         "length": n,
