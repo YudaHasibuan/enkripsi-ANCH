@@ -1,0 +1,2 @@
+[console_scripts]
+anch = anch.__main__:main

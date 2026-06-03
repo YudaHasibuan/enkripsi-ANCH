@@ -1,0 +1,69 @@
+site_name: ANCH Framework
+site_description: Adaptive Neural Chaotic Hash Framework — experimental hashing combining feature extraction, neural parameters, and chaos theory.
+site_url: https://anch-framework.vercel.app
+repo_url: https://github.com/anch-framework/anch
+repo_name: anch-framework/anch
+
+theme:
+  name: material
+  palette:
+    - scheme: slate
+      primary: deep purple
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - scheme: default
+      primary: deep purple
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.instant
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+  icon:
+    repo: fontawesome/brands/github
+  font:
+    text: Inter
+    code: JetBrains Mono
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Quick Start: quickstart.md
+  - API Reference:
+      - Overview: api/overview.md
+      - hash(): api/hash.md
+      - verify(): api/verify.md
+      - hash_file(): api/hash_file.md
+      - avalanche(): api/avalanche.md
+      - entropy(): api/entropy.md
+      - collision_test(): api/collision_test.md
+  - Architecture: architecture.md
+  - Benchmarks: benchmarks.md
+  - Examples: examples.md
+  - Roadmap: roadmap.md
+  - Research: research.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.emoji
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search
