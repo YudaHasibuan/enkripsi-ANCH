@@ -13,11 +13,12 @@ export default function Footer() {
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
               <div style={{
                 width: 32, height: 32,
-                background: "linear-gradient(135deg, #8b6dff, #00d4ff)",
-                borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
-                fontWeight: 900, fontSize: "0.9rem", color: "white",
+                background: "linear-gradient(135deg, #7c5dfa, #00f0ff)",
+                borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+                fontWeight: 900, fontSize: "0.95rem", color: "white",
+                boxShadow: "0 0 10px rgba(124, 93, 250, 0.3)"
               }}>A</div>
-              <span style={{ fontWeight: 700, fontSize: "1rem" }}>ANCH Framework</span>
+              <span style={{ fontWeight: 800, fontSize: "1.1rem", color: "white", letterSpacing: "-0.02em" }}>ANCH Framework</span>
             </div>
             <p style={{ color: "var(--anch-text-muted)", fontSize: "0.85rem", lineHeight: 1.7, maxWidth: 280 }}>
               An experimental adaptive hashing framework combining neural parameters and chaos theory.

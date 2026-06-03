@@ -79,33 +79,37 @@ const features = [
 
 export default function FeaturesSection() {
   return (
-    <section id="features" className="section" style={{ background: "rgba(8,6,22,0.8)", position: "relative" }}>
+    <section id="features" className="section" style={{ background: "rgba(6,4,16,0.6)", position: "relative" }}>
       {/* Background glow spot */}
-      <div style={{ position: "absolute", bottom: "10%", left: "5%", width: 350, height: 350, background: "radial-gradient(circle, rgba(139,109,255,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", top: "10%", right: "5%", width: 350, height: 350, background: "radial-gradient(circle, rgba(0,212,255,0.05) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", bottom: "10%", left: "5%", width: 450, height: 450, background: "radial-gradient(circle, rgba(124,93,250,0.06) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", top: "10%", right: "5%", width: 450, height: 450, background: "radial-gradient(circle, rgba(0,240,255,0.04) 0%, transparent 70%)", pointerEvents: "none" }} />
 
       <div className="container" style={{ position: "relative", zIndex: 1 }}>
-        <div style={{ textAlign: "center", marginBottom: 60 }}>
-          <span className="badge badge-cyan" style={{ marginBottom: 16, display: "inline-block", padding: "5px 14px" }}>⚡ Key Pillars</span>
+        <div style={{ textAlign: "center", marginBottom: 64 }}>
+          <span className="badge badge-cyan" style={{ marginBottom: 16, display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 14px" }}>
+            <Activity size={12} />
+            <span>Key Pillars</span>
+          </span>
           <h2 style={{ fontSize: "clamp(2rem, 5vw, 3rem)", fontWeight: 800, marginBottom: 16, letterSpacing: "-0.02em" }}>
             Engineered for <span className="gradient-text">Chaos & Adaptability</span>
           </h2>
-          <p style={{ color: "var(--anch-text-dim)", maxWidth: 540, margin: "0 auto", fontSize: "1.05rem", lineHeight: 1.7 }}>
+          <p style={{ color: "var(--anch-text-dim)", maxWidth: 540, margin: "0 auto", fontSize: "1.05rem", lineHeight: 1.8 }}>
             ANCH decouples fixed structures by dynamically altering hash schedules based on the features of the data itself.
           </p>
         </div>
 
-        <div className="grid-4" style={{ gap: 20 }}>
+        <div className="bento-grid">
           {features.map((f, idx) => {
             const IconComponent = f.icon;
+            const isLarge = idx === 0 || idx === 3 || idx === 6;
             return (
               <div 
                 key={f.title} 
-                className="feature-card animate-fade-up" 
+                className={`feature-card animate-fade-up ${isLarge ? "bento-item-large" : ""}`}
                 style={{ 
                   animationDelay: `${idx * 0.05}s`,
-                  background: "rgba(22, 20, 48, 0.45)", 
-                  borderColor: "rgba(42,38,80,0.6)",
+                  background: "rgba(21, 19, 45, 0.45)", 
+                  borderColor: "rgba(124, 93, 250, 0.15)",
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "space-between"
@@ -114,34 +118,35 @@ export default function FeaturesSection() {
                 <div>
                   <div style={{ 
                     width: 52, height: 52, 
-                    borderRadius: 12, 
-                    background: "rgba(139,109,255,0.08)", 
-                    border: "1px solid rgba(139,109,255,0.2)",
+                    borderRadius: 14, 
+                    background: "rgba(124, 93, 250, 0.08)", 
+                    border: "1px solid rgba(124, 93, 250, 0.25)",
                     display: "flex", 
                     alignItems: "center", 
                     justifyContent: "center",
-                    marginBottom: 20,
-                    boxShadow: "0 8px 24px rgba(139,109,255,0.05)"
+                    marginBottom: 24,
+                    boxShadow: "0 8px 24px rgba(124, 93, 250, 0.08)"
                   }}>
-                    <IconComponent size={24} style={{ color: "var(--anch-purple)" }} />
+                    <IconComponent size={24} style={{ color: "var(--anch-purple-bright)" }} />
                   </div>
-                  <div style={{ marginBottom: 12 }}>
-                    <span className={`badge ${f.badgeClass}`} style={{ fontSize: "0.68rem", padding: "3px 10px" }}>{f.badge}</span>
+                  <div style={{ marginBottom: 14 }}>
+                    <span className={`badge ${f.badgeClass}`} style={{ fontSize: "0.68rem", padding: "4px 10px" }}>{f.badge}</span>
                   </div>
-                  <h3 style={{ fontWeight: 700, fontSize: "1.1rem", marginBottom: 12, color: "var(--anch-text)" }}>
+                  <h3 style={{ fontWeight: 800, fontSize: "1.25rem", marginBottom: 12, color: "white", letterSpacing: "-0.01em" }}>
                     {f.title}
                   </h3>
-                  <p style={{ color: "var(--anch-text-dim)", fontSize: "0.85rem", lineHeight: 1.7, marginBottom: 16 }}>
+                  <p style={{ color: "var(--anch-text-dim)", fontSize: "0.9rem", lineHeight: 1.7, marginBottom: 20 }}>
                     {f.desc}
                   </p>
                 </div>
                 <p style={{ 
                   color: "var(--anch-text-muted)", 
-                  fontSize: "0.78rem", 
+                  fontSize: "0.8rem", 
                   lineHeight: 1.6, 
-                  borderTop: "1px solid rgba(42,38,80,0.5)", 
-                  paddingTop: 12,
-                  marginTop: "auto"
+                  borderTop: "1px solid rgba(124, 93, 250, 0.12)", 
+                  paddingTop: 16,
+                  marginTop: "auto",
+                  fontWeight: 500
                 }}>
                   {f.detail}
                 </p>

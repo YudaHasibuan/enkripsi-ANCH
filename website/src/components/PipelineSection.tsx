@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { 
   Database, 
   Binary, 
@@ -21,57 +22,70 @@ const stages = [
 ];
 
 export default function PipelineSection() {
+  const [activeStage, setActiveStage] = useState<string>("feature");
+
   return (
     <section id="pipeline" className="section" style={{ position: "relative", overflow: "hidden" }}>
-      {/* Visual connection grid overlay */}
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundImage: "linear-gradient(rgba(139,109,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(139,109,255,0.015) 1px, transparent 1px)", backgroundSize: "40px 40px", pointerEvents: "none" }} />
+      {/* Cyber Grid Overlay */}
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundImage: "linear-gradient(rgba(124,93,250,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(124,93,250,0.015) 1px, transparent 1px)", backgroundSize: "40px 40px", pointerEvents: "none" }} />
 
       <div className="container" style={{ position: "relative", zIndex: 1 }}>
-        <div style={{ textAlign: "center", marginBottom: 60 }}>
-          <span className="badge badge-purple" style={{ marginBottom: 16, display: "inline-block", padding: "5px 14px" }}>⚙️ Architecture</span>
+        <div style={{ textAlign: "center", marginBottom: 64 }}>
+          <span className="badge badge-purple" style={{ marginBottom: 16, display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 14px" }}>
+            <BrainCircuit size={12} />
+            <span>Architecture</span>
+          </span>
           <h2 style={{ fontSize: "clamp(2rem, 5vw, 3rem)", fontWeight: 800, marginBottom: 16, letterSpacing: "-0.02em" }}>
             The <span className="gradient-text">ANCH Pipeline</span>
           </h2>
-          <p style={{ color: "var(--anch-text-dim)", maxWidth: 540, margin: "0 auto", fontSize: "1.05rem", lineHeight: 1.7 }}>
-            Five distinct stages transform raw input into a unique, reproducible 256-bit digest.
-            Each stage feeds into the next, with chaos bytes controlling every decision.
+          <p style={{ color: "var(--anch-text-dim)", maxWidth: 580, margin: "0 auto", fontSize: "1.05rem", lineHeight: 1.8 }}>
+            Seven modular stages transform raw input into a secure, reproducible 256-bit digest. Hover on any node to dissect the engine.
           </p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 48, alignItems: "start" }} className="pipeline-grid">
-          {/* Left: pipeline flow */}
-          <div style={{ position: "sticky", top: 100 }} className="pipeline-flow">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 2.1fr", gap: 48, alignItems: "start" }} className="pipeline-grid">
+          {/* Left Column: Interactive flow list */}
+          <div style={{ position: "sticky", top: 120 }} className="pipeline-flow">
             {stages.map((stage, i) => {
               const IconComp = stage.icon;
+              const isActive = activeStage === stage.id;
               return (
                 <div key={stage.id} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                   <div 
-                    className="pipeline-node" 
+                    className={`pipeline-node ${isActive ? "active-node" : ""}`}
+                    onMouseEnter={() => setActiveStage(stage.id)}
                     style={{ 
-                      borderColor: i === 6 ? "var(--anch-purple)" : "rgba(42,38,80,0.6)",
-                      background: "rgba(22, 20, 48, 0.4)",
+                      borderColor: isActive ? stage.color : "rgba(124,93,250,0.15)",
+                      background: isActive ? "rgba(124,93,250,0.08)" : "rgba(21,19,45,0.35)",
                       width: "100%",
-                      padding: "16px 20px"
+                      padding: "16px 20px",
+                      boxShadow: isActive ? `0 0 20px rgba(0, 240, 255, 0.15)` : "none"
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <div style={{ 
-                        width: 32, height: 32, 
-                        borderRadius: 8, 
-                        background: "rgba(255,255,255,0.03)", 
-                        display: "flex", 
-                        alignItems: "center", 
-                        justifyContent: "center",
-                        border: "1px solid rgba(255,255,255,0.05)"
-                      }}>
-                        <IconComp size={16} style={{ color: stage.color }} />
+                    <div style={{ display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "space-between" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <div style={{ 
+                          width: 32, height: 32, 
+                          borderRadius: 8, 
+                          background: isActive ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.02)", 
+                          display: "flex", 
+                          alignItems: "center", 
+                          justifyContent: "center",
+                          border: isActive ? `1px solid ${stage.color}` : "1px solid rgba(255,255,255,0.04)"
+                        }}>
+                          <IconComp size={16} style={{ color: isActive ? stage.color : "var(--anch-text-dim)" }} />
+                        </div>
+                        <span style={{ fontWeight: 700, color: isActive ? "white" : "var(--anch-text-dim)", fontSize: "0.92rem", transition: "color 0.2s" }}>{stage.label}</span>
                       </div>
-                      <span style={{ fontWeight: 600, color: "var(--anch-text)", fontSize: "0.9rem" }}>{stage.label}</span>
+                      
+                      {isActive && (
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: stage.color, boxShadow: `0 0 10px ${stage.color}` }} />
+                      )}
                     </div>
                   </div>
                   {i < stages.length - 1 && (
-                    <div className="pipeline-arrow" style={{ margin: "8px 0", color: "var(--anch-border)" }}>
-                      <ArrowDown size={16} />
+                    <div className="pipeline-arrow" style={{ margin: "6px 0", color: isActive ? stage.color : "rgba(124,93,250,0.2)", transition: "color 0.3s" }}>
+                      <ArrowDown size={15} />
                     </div>
                   )}
                 </div>
@@ -79,72 +93,83 @@ export default function PipelineSection() {
             })}
           </div>
 
-          {/* Right: detail cards */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {stages.slice(1).map((stage) => {
+          {/* Right Column: Dynamic detail cards */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 18 }} className="pipeline-details">
+            {stages.map((stage) => {
               const IconComp = stage.icon;
+              const isActive = activeStage === stage.id;
               return (
                 <div 
                   key={stage.id} 
                   className="feature-card"
+                  onMouseEnter={() => setActiveStage(stage.id)}
                   style={{
-                    background: "rgba(22, 20, 48, 0.45)",
-                    borderColor: "rgba(42,38,80,0.6)",
-                    boxShadow: "0 10px 30px rgba(0,0,0,0.2)"
+                    background: "rgba(21, 19, 45, 0.45)",
+                    borderColor: isActive ? stage.color : "rgba(124, 93, 250, 0.15)",
+                    opacity: isActive ? 1 : 0.38,
+                    transform: isActive ? "scale(1.015)" : "scale(1.0)",
+                    boxShadow: isActive ? `0 15px 40px rgba(0,0,0,0.5), 0 0 30px ${stage.color}15` : "0 10px 30px rgba(0,0,0,0.2)",
+                    transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)"
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
                     <div style={{ 
                       width: 44, height: 44, 
                       borderRadius: 10, 
-                      background: "rgba(255,255,255,0.03)", 
+                      background: isActive ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.01)", 
                       display: "flex", 
                       alignItems: "center", 
                       justifyContent: "center",
-                      border: "1px solid rgba(255,255,255,0.05)"
+                      border: isActive ? `1px solid ${stage.color}` : "1px solid rgba(255,255,255,0.03)"
                     }}>
                       <IconComp size={20} style={{ color: stage.color }} />
                     </div>
                     <div>
-                      <div style={{ fontWeight: 700, color: "var(--anch-text)", fontSize: "1.05rem", marginBottom: 2 }}>{stage.label}</div>
-                      <div style={{ fontSize: "0.82rem", color: "var(--anch-text-dim)" }}>{stage.desc}</div>
+                      <div style={{ fontWeight: 800, color: "white", fontSize: "1.1rem", marginBottom: 2 }}>{stage.label}</div>
+                      <div style={{ fontSize: "0.85rem", color: "var(--anch-text-dim)", fontWeight: 500 }}>{stage.desc}</div>
                     </div>
                   </div>
                   
+                  {stage.id === "input" && (
+                    <div className="code-block" style={{ fontSize: "0.82rem", background: "rgba(6, 4, 15, 0.85)", border: "1px solid rgba(124,93,250,0.2)" }}>
+                      <span className="cm"># Accept strings, raw bytes, or file paths</span>{"\n"}
+                      data = <span className="st">b&quot;hello world&quot;</span>
+                    </div>
+                  )}
                   {stage.id === "feature" && (
-                    <div className="code-block" style={{ fontSize: "0.78rem", background: "rgba(10, 8, 26, 0.8)", border: "1px solid rgba(42,38,80,0.5)" }}>
-                      <span className="cm"># feature.py extracts 134-float vector</span>{"\n"}
+                    <div className="code-block" style={{ fontSize: "0.82rem", background: "rgba(6, 4, 15, 0.85)", border: "1px solid rgba(124,93,250,0.2)" }}>
+                      <span className="cm"># feature.py extracts 134-float feature vector</span>{"\n"}
                       feats = <span className="fn">extract_features</span>(data){"\n"}
                       vec   = <span className="fn">build_feature_vector</span>(feats)
                     </div>
                   )}
                   {stage.id === "neural" && (
-                    <div className="code-block" style={{ fontSize: "0.78rem", background: "rgba(10, 8, 26, 0.8)", border: "1px solid rgba(42,38,80,0.5)" }}>
+                    <div className="code-block" style={{ fontSize: "0.82rem", background: "rgba(6, 4, 15, 0.85)", border: "1px solid rgba(124,93,250,0.2)" }}>
                       <span className="cm"># neural.py — two dense layers, LCG weights</span>{"\n"}
                       params = <span className="fn">generate_parameters</span>(vec){"\n"}
                       <span className="cm"># → seed, r_value, rotations, compression_key</span>
                     </div>
                   )}
                   {stage.id === "chaos" && (
-                    <div className="code-block" style={{ fontSize: "0.78rem", background: "rgba(10, 8, 26, 0.8)", border: "1px solid rgba(42,38,80,0.5)" }}>
+                    <div className="code-block" style={{ fontSize: "0.82rem", background: "rgba(6, 4, 15, 0.85)", border: "1px solid rgba(124,93,250,0.2)" }}>
                       <span className="cm"># chaos.py — logistic map x[n+1] = r·x·(1-x)</span>{"\n"}
                       chaos_b = <span className="fn">generate_chaos_state</span>(params, <span className="nm">128</span>)
                     </div>
                   )}
                   {stage.id === "permutation" && (
-                    <div className="code-block" style={{ fontSize: "0.78rem", background: "rgba(10, 8, 26, 0.8)", border: "1px solid rgba(42,38,80,0.5)" }}>
+                    <div className="code-block" style={{ fontSize: "0.82rem", background: "rgba(6, 4, 15, 0.85)", border: "1px solid rgba(124,93,250,0.2)" }}>
                       <span className="cm"># permutation.py — Fisher-Yates bit shuffle</span>{"\n"}
                       state = <span className="fn">apply_permutation</span>(state, params, chaos_b)
                     </div>
                   )}
                   {stage.id === "compression" && (
-                    <div className="code-block" style={{ fontSize: "0.78rem", background: "rgba(10, 8, 26, 0.8)", border: "1px solid rgba(42,38,80,0.5)" }}>
+                    <div className="code-block" style={{ fontSize: "0.82rem", background: "rgba(6, 4, 15, 0.85)", border: "1px solid rgba(124,93,250,0.2)" }}>
                       <span className="cm"># compression.py — 4–16 Feistel rounds</span>{"\n"}
                       state = <span className="fn">compress</span>(state, params, chaos_b)
                     </div>
                   )}
                   {stage.id === "digest" && (
-                    <div className="code-block" style={{ fontSize: "0.78rem", background: "rgba(10, 8, 26, 0.8)", border: "1px solid rgba(42,38,80,0.5)" }}>
+                    <div className="code-block" style={{ fontSize: "0.82rem", background: "rgba(6, 4, 15, 0.85)", border: "1px solid rgba(124,93,250,0.2)" }}>
                       <span className="cm"># Fold 64→32 bytes, finalize, hex-encode</span>{"\n"}
                       digest = <span className="fn">finalize_digest</span>(state, data){"\n"}
                       <span className="cm"># → &quot;7f91ac3b2d058e4f...&quot; (64 chars)</span>
@@ -158,14 +183,21 @@ export default function PipelineSection() {
       </div>
 
       <style>{`
-        @media (max-width: 768px) {
+        @media (max-width: 850px) {
           .pipeline-grid {
             grid-template-columns: 1fr !important;
           }
           .pipeline-flow {
             position: relative !important;
             top: 0 !important;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
+          }
+          .pipeline-details {
+            gap: 12px !important;
+          }
+          .pipeline-details > div {
+            opacity: 1 !important;
+            transform: none !important;
           }
         }
       `}</style>

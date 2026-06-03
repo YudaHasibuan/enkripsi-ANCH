@@ -23,10 +23,10 @@ function AnimatedDigest({ value }: { value: string }) {
       setDisplayed(current);
       step++;
       if (step > target.length) clearInterval(interval);
-    }, 18);
+    }, 15);
     return () => clearInterval(interval);
   }, [value]);
-  return <span style={{ color: "var(--anch-cyan)", fontFamily: "var(--font-mono)" }}>{displayed}</span>;
+  return <span style={{ color: "var(--anch-cyan)", fontFamily: "var(--font-mono)", fontWeight: 600, letterSpacing: "0.02em" }}>{displayed}</span>;
 }
 
 export default function HeroSection() {
@@ -40,7 +40,6 @@ export default function HeroSection() {
   // Simulated hash (client-side demo — real hash runs server-side)
   function simulateHash(text: string): string {
     if (DEMO_DIGESTS[text]) return DEMO_DIGESTS[text];
-    // Deterministic but visually plausible fake hex from input
     let seed = 0;
     for (let i = 0; i < text.length; i++) seed = ((seed << 5) - seed + text.charCodeAt(i)) | 0;
     const chars = "0123456789abcdef";
@@ -60,70 +59,95 @@ export default function HeroSection() {
     timerRef.current = setTimeout(() => {
       setDigest(simulateHash(val));
       setTyping(false);
-    }, 300);
+    }, 250);
   };
 
   return (
-    <section style={{ paddingTop: 140, paddingBottom: 80, position: "relative", overflow: "hidden" }}>
-      {/* Decorative Cyber Grid Background */}
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 600, backgroundImage: "radial-gradient(var(--anch-border) 1px, transparent 1px)", backgroundSize: "24px 24px", opacity: 0.15, pointerEvents: "none", zIndex: 0 }} />
+    <section style={{ paddingTop: 180, paddingBottom: 100, position: "relative", overflow: "hidden" }}>
+      {/* Mega Glowing Orbs for Luxury Depth */}
+      <div 
+        className="glow-orb"
+        style={{ 
+          position: "absolute", 
+          top: "8%", 
+          left: "50%", 
+          transform: "translateX(-50%)", 
+          width: "550px", 
+          height: "550px", 
+          background: "radial-gradient(circle, rgba(124, 93, 250, 0.14) 0%, rgba(0, 240, 255, 0.04) 50%, transparent 70%)", 
+          pointerEvents: "none", 
+          zIndex: 0 
+        }} 
+      />
+      <div 
+        style={{ 
+          position: "absolute", 
+          top: "25%", 
+          left: "10%", 
+          width: "350px", 
+          height: "350px", 
+          background: "radial-gradient(circle, rgba(0, 255, 170, 0.05) 0%, transparent 70%)", 
+          pointerEvents: "none", 
+          zIndex: 0 
+        }} 
+      />
+      
+      {/* Decorative Cyber Grid Overlay */}
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 750, backgroundImage: "radial-gradient(rgba(124, 93, 250, 0.08) 1.5px, transparent 1.5px)", backgroundSize: "32px 32px", opacity: 0.25, pointerEvents: "none", zIndex: 0 }} />
 
       <div className="container" style={{ textAlign: "center", position: "relative", zIndex: 1 }}>
 
         {/* Badge */}
-        <div className="animate-fade-up" style={{ marginBottom: 24 }}>
-          <span className="badge badge-purple" style={{ padding: "6px 16px", border: "1px solid rgba(139,109,255,0.4)", boxShadow: "0 0 15px rgba(139,109,255,0.15)", display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <Sparkles size={12} />
-            <span>Open-Source Adaptive Hashing · v0.1.0 Released</span>
+        <div className="animate-fade-up" style={{ marginBottom: 28 }}>
+          <span className="badge badge-purple" style={{ padding: "8px 20px", border: "1px solid rgba(124,93,250,0.35)", boxShadow: "0 0 20px rgba(124,93,250,0.15)", textTransform: "none", fontSize: "0.8rem", letterSpacing: "0.02em" }}>
+            <Sparkles size={13} style={{ color: "var(--anch-cyan)" }} />
+            <span style={{ fontWeight: 600 }}>Adaptive Neural Hashing Engine</span> · <span style={{ color: "var(--anch-cyan)", fontWeight: 700 }}>v0.1.0 Released</span>
           </span>
         </div>
 
         {/* Headline */}
-        <h1 className="animate-fade-up delay-100" style={{ fontSize: "clamp(2.5rem, 7vw, 4.5rem)", fontWeight: 900, lineHeight: 1.1, marginBottom: 20, letterSpacing: "-0.03em" }}>
+        <h1 className="animate-fade-up delay-100" style={{ fontSize: "clamp(2.8rem, 8vw, 5rem)", fontWeight: 900, lineHeight: 1.05, marginBottom: 24, letterSpacing: "-0.04em" }}>
           <span className="gradient-text">Adaptive Neural</span>
           <br />
-          <span style={{ color: "var(--anch-text)", textShadow: "0 0 40px rgba(255,255,255,0.05)" }}>Chaotic Hashing</span>
+          <span style={{ color: "var(--anch-text)", textShadow: "0 0 50px rgba(255,255,255,0.06)" }}>Chaotic Hashing</span>
         </h1>
 
-        <p className="animate-fade-up delay-200" style={{ fontSize: "clamp(1rem, 2.5vw, 1.25rem)", color: "var(--anch-text-dim)", maxWidth: 640, margin: "0 auto 40px", lineHeight: 1.75 }}>
-          A secure, multi-stage experimental hashing framework. Combines <strong style={{ color: "var(--anch-purple-bright)" }}>bit-level feature extraction</strong>,{" "}
-          <strong style={{ color: "var(--anch-cyan)" }}>pseudo-neural parameter generation</strong>, and{" "}
-          <strong style={{ color: "var(--anch-green)" }}>chaotic state mixing</strong>.
+        {/* Subtitle description */}
+        <p className="animate-fade-up delay-200" style={{ fontSize: "clamp(1.05rem, 2.5vw, 1.3rem)", color: "var(--anch-text-dim)", maxWidth: 680, margin: "0 auto 48px", lineHeight: 1.8 }}>
+          A secure, multi-stage experimental hashing framework. Combines <strong style={{ color: "var(--anch-purple-bright)", fontWeight: 700 }}>bit-level feature extraction</strong>,{" "}
+          <strong style={{ color: "var(--anch-cyan)", fontWeight: 700 }}>neural parameter generation</strong>, and{" "}
+          <strong style={{ color: "var(--anch-green)", fontWeight: 700 }}>chaotic orbit state mixing</strong>.
         </p>
 
         {/* CTA buttons */}
-        <div className="animate-fade-up delay-300" style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", marginBottom: 60 }}>
-          <a href="#install" className="btn-primary" id="hero-install-btn">
-            <Terminal size={16} />
+        <div className="animate-fade-up delay-300" style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap", marginBottom: 70 }}>
+          <a href="#install" className="btn-primary" id="hero-install-btn" style={{ padding: "16px 36px" }}>
+            <Terminal size={18} />
             <span>pip install anch-hash</span>
           </a>
-          <a href="#playground" className="btn-secondary" id="hero-playground-btn">
-            <Play size={16} />
-            <span>Try Interactive Playground</span>
-          </a>
-          <a href={repoUrl} target="_blank" rel="noopener" className="btn-secondary" id="hero-github-btn">
-            <svg viewBox="0 0 24 24" width={16} height={16} stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" /><path d="M9 18c-4.51 2-5-2-7-2" /></svg>
-            <span>View on GitHub</span>
+          <a href="#playground" className="btn-secondary" id="hero-playground-btn" style={{ padding: "16px 36px" }}>
+            <Play size={18} style={{ fill: "currentColor" }} />
+            <span>Interactive Playground</span>
           </a>
         </div>
 
         {/* Live hash demo card with side-by-side Visualizer */}
-        <div className="animate-fade-up delay-400 glass" style={{ maxWidth: 940, margin: "0 auto", borderRadius: 20, padding: 32, boxShadow: "0 20px 50px rgba(0,0,0,0.5), 0 0 40px rgba(139,109,255,0.05)" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span className="badge badge-green" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+        <div className="animate-fade-up delay-400 glass" style={{ maxWidth: 980, margin: "0 auto", borderRadius: 24, padding: "36px 32px", border: "1px solid rgba(124, 93, 250, 0.25)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28, flexWrap: "wrap", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <span className="badge badge-green" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", textTransform: "none" }}>
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--anch-green)", display: "inline-block" }} className="animate-pulse" />
-                <span>Live Engine Simulator</span>
+                <span style={{ fontWeight: 700 }}>Live Engine Simulator</span>
               </span>
-              <span style={{ color: "var(--anch-text-muted)", fontSize: "0.82rem" }}>Interactive Bifurcation Wave</span>
+              <span style={{ color: "var(--anch-text-muted)", fontSize: "0.85rem", fontWeight: 500 }}>Interactive Bifurcation Wave</span>
             </div>
-            <span style={{ fontSize: "0.78rem", color: "var(--anch-text-muted)", fontFamily: "var(--font-mono)" }}>OUTPUT_BITS = 256</span>
+            <span style={{ fontSize: "0.8rem", color: "var(--anch-text-muted)", fontFamily: "var(--font-mono)", border: "1px solid rgba(124,93,250,0.15)", padding: "3px 10px", borderRadius: 6, background: "rgba(0,0,0,0.2)" }}>OUTPUT_BITS = 256</span>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 28, alignItems: "center" }} className="demo-grid">
+          <div style={{ display: "grid", gridTemplateColumns: "1.25fr 1fr", gap: 36, alignItems: "center" }} className="demo-grid">
             {/* Left Column: Interactive Input / Code / Output */}
             <div style={{ textAlign: "left" }}>
-              <div className="code-block" style={{ marginBottom: 16, fontSize: "0.82rem", background: "rgba(10, 8, 26, 0.8)", border: "1px solid rgba(42,38,80,0.5)" }}>
+              <div className="code-block" style={{ marginBottom: 20, fontSize: "0.85rem", background: "rgba(6, 4, 15, 0.85)", border: "1px solid rgba(124,93,250,0.2)" }}>
                 <span className="kw">import</span> anch
                 <br />
                 digest = anch.<span className="fn">hash</span>(<span className="st">&quot;{inputText}&quot;</span>)
@@ -136,15 +160,15 @@ export default function HeroSection() {
                 onChange={(e) => handleChange(e.target.value)}
                 className="playground-input"
                 placeholder="Type something to perturb the chaotic regime…"
-                style={{ marginBottom: 16, fontFamily: "var(--font-mono)", fontSize: "0.95rem" }}
+                style={{ marginBottom: 20, fontFamily: "var(--font-mono)", fontSize: "1rem", height: 54 }}
               />
 
               <div>
-                <div style={{ fontSize: "0.78rem", color: "var(--anch-text-muted)", marginBottom: 6, display: "flex", justifyContent: "space-between" }}>
+                <div style={{ fontSize: "0.8rem", color: "var(--anch-text-dim)", marginBottom: 8, display: "flex", justifyContent: "space-between", fontWeight: 600 }}>
                   <span>ANCH Digest (256-bit Hex)</span>
-                  <span style={{ color: "var(--anch-cyan-dim)" }}>SHANNON ENTROPY: ~4.2</span>
+                  <span style={{ color: "var(--anch-cyan-dim)" }}>SHANNON ENTROPY: ~4.2 bits/byte</span>
                 </div>
-                <div className="result-box" style={{ borderColor: typing ? "var(--anch-purple-dim)" : "var(--anch-border)", padding: "16px 20px" }}>
+                <div className="result-box" style={{ borderColor: typing ? "rgba(0, 240, 255, 0.4)" : "rgba(124,93,250,0.2)", padding: "18px 22px", background: "rgba(6, 4, 15, 0.8)" }}>
                   <AnimatedDigest value={digest} />
                 </div>
               </div>
@@ -157,25 +181,32 @@ export default function HeroSection() {
           </div>
 
           {/* Quick inputs */}
-          <div style={{ display: "flex", gap: 8, marginTop: 24, flexWrap: "wrap", alignItems: "center" }}>
-            <span style={{ fontSize: "0.78rem", color: "var(--anch-text-muted)" }}>Quick seeds:</span>
+          <div style={{ display: "flex", gap: 10, marginTop: 32, flexWrap: "wrap", alignItems: "center" }}>
+            <span style={{ fontSize: "0.82rem", color: "var(--anch-text-muted)", fontWeight: 600 }}>Perturbation Seeds:</span>
             {["hello world", "ANCH Framework", "chaotic mapping", "cryptography"].map((sample) => (
               <button
                 key={sample}
                 onClick={() => handleChange(sample)}
                 style={{
-                  background: inputText === sample ? "rgba(139,109,255,0.12)" : "rgba(22,20,48,0.3)",
+                  background: inputText === sample ? "rgba(0, 240, 255, 0.12)" : "rgba(124,93,250,0.05)",
                   border: "1px solid",
-                  borderColor: inputText === sample ? "var(--anch-purple)" : "rgba(42,38,80,0.6)",
-                  borderRadius: 6, padding: "5px 12px", color: "var(--anch-text-dim)",
-                  cursor: "pointer", fontSize: "0.78rem", fontFamily: "var(--font-mono)",
-                  transition: "all 0.2s",
+                  borderColor: inputText === sample ? "var(--anch-cyan)" : "rgba(124,93,250,0.2)",
+                  borderRadius: 8, padding: "6px 14px", color: inputText === sample ? "white" : "var(--anch-text-dim)",
+                  cursor: "pointer", fontSize: "0.8rem", fontFamily: "var(--font-mono)",
+                  transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+                  fontWeight: inputText === sample ? 600 : 400
                 }}
                 onMouseOver={(e) => {
-                  if (inputText !== sample) e.currentTarget.style.borderColor = "var(--anch-purple)";
+                  if (inputText !== sample) {
+                    e.currentTarget.style.borderColor = "var(--anch-purple)";
+                    e.currentTarget.style.color = "white";
+                  }
                 }}
                 onMouseOut={(e) => {
-                  if (inputText !== sample) e.currentTarget.style.borderColor = "rgba(42,38,80,0.6)";
+                  if (inputText !== sample) {
+                    e.currentTarget.style.borderColor = "rgba(124,93,250,0.2)";
+                    e.currentTarget.style.color = "var(--anch-text-dim)";
+                  }
                 }}
               >
                 {sample}
@@ -185,16 +216,16 @@ export default function HeroSection() {
         </div>
 
         {/* Stats row */}
-        <div className="animate-fade-up delay-500 grid-4" style={{ maxWidth: 840, margin: "48px auto 0", gap: 16 }}>
+        <div className="animate-fade-up delay-500 grid-4" style={{ maxWidth: 900, margin: "64px auto 0", gap: 20 }}>
           {[
             { number: "256", label: "Bit Output Digest", color: "var(--anch-purple-bright)" },
-            { number: "0", label: "External Dependencies", color: "var(--anch-green)" },
-            { number: "5", label: "Orchestration Stages", color: "var(--anch-cyan)" },
+            { number: "0", label: "Runtime Dependencies", color: "var(--anch-green)" },
+            { number: "5", label: "Pipeline Stages", color: "var(--anch-cyan)" },
             { number: "v0.1.0", label: "PyPI Package Release", color: "var(--anch-orange)" },
           ].map((s) => (
-            <div key={s.label} className="stat-card" style={{ background: "rgba(22, 20, 48, 0.45)", border: "1px solid rgba(42,38,80,0.6)", boxShadow: "0 8px 30px rgba(0,0,0,0.2)" }}>
-              <div className="stat-number" style={{ color: s.color, textShadow: `0 0 20px ${s.color}22` }}>{s.number}</div>
-              <div style={{ color: "var(--anch-text-muted)", fontSize: "0.8rem", fontWeight: 500 }}>{s.label}</div>
+            <div key={s.label} className="stat-card" style={{ background: "rgba(21, 19, 45, 0.4)", borderColor: "rgba(124, 93, 250, 0.25)", boxShadow: "0 10px 30px rgba(0,0,0,0.3)" }}>
+              <div className="stat-number" style={{ color: s.color, textShadow: `0 0 25px ${s.color}25` }}>{s.number}</div>
+              <div style={{ color: "var(--anch-text-muted)", fontSize: "0.85rem", fontWeight: 600, letterSpacing: "0.02em" }}>{s.label}</div>
             </div>
           ))}
         </div>
