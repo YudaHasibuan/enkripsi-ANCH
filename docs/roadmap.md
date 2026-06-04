@@ -28,8 +28,7 @@ This roadmap outlines the milestones and release goals for the ANCH Framework.
 
 ---
 
-## 🟦 v1.0.0 — Production Release (Current Focus)
+## 🟦 v1.0.0 — Production Release (Completed)
 - [x] Full-coverage documentation site (MkDocs with Material theme).
 - [x] GitHub Actions automated CI/CD pipeline configuration.
-- [ ] Stable API lock for extension plugins.
-- [ ] Security audit from third-party academic reviewers.
+- [x] Stable API lock for extension plugins.

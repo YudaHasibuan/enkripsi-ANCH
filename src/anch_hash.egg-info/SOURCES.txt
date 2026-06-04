@@ -2,6 +2,7 @@ README.md
 pyproject.toml
 src/anch/__init__.py
 src/anch/__main__.py
+src/anch/api.py
 src/anch/benchmark.py
 src/anch/chaos.py
 src/anch/compression.py

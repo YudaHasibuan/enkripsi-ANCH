@@ -101,7 +101,7 @@ export default function HeroSection() {
         <div className="animate-fade-up" style={{ marginBottom: 28 }}>
           <span className="badge badge-purple" style={{ padding: "8px 20px", border: "1px solid rgba(124,93,250,0.35)", boxShadow: "0 0 20px rgba(124,93,250,0.15)", textTransform: "none", fontSize: "0.8rem", letterSpacing: "0.02em" }}>
             <Sparkles size={13} style={{ color: "var(--anch-cyan)" }} />
-            <span style={{ fontWeight: 600 }}>Adaptive Neural Hashing Engine</span> · <span style={{ color: "var(--anch-cyan)", fontWeight: 700 }}>v0.1.0 Released</span>
+            <span style={{ fontWeight: 600 }}>Adaptive Neural Hashing Engine</span> · <span style={{ color: "var(--anch-cyan)", fontWeight: 700 }}>v1.0.0 Released</span>
           </span>
         </div>
 
@@ -221,7 +221,7 @@ export default function HeroSection() {
             { number: "256", label: "Bit Output Digest", color: "var(--anch-purple-bright)" },
             { number: "0", label: "Runtime Dependencies", color: "var(--anch-green)" },
             { number: "5", label: "Pipeline Stages", color: "var(--anch-cyan)" },
-            { number: "v0.1.0", label: "PyPI Package Release", color: "var(--anch-orange)" },
+            { number: "v1.0.0", label: "PyPI Package Release", color: "var(--anch-orange)" },
           ].map((s) => (
             <div key={s.label} className="stat-card" style={{ background: "rgba(21, 19, 45, 0.4)", borderColor: "rgba(124, 93, 250, 0.25)", boxShadow: "0 10px 30px rgba(0,0,0,0.3)" }}>
               <div className="stat-number" style={{ color: s.color, textShadow: `0 0 25px ${s.color}25` }}>{s.number}</div>

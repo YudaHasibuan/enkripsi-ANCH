@@ -362,3 +362,62 @@ def collision_test(dataset: list[Union[str, bytes]]) -> dict:
             str(_encode(k)): v for k, v in digests.items()
         },
     }
+
+
+def hmac_anch(key: Union[str, bytes], message: Union[str, bytes]) -> str:
+    """
+    Compute HMAC-ANCH (Hash-based Message Authentication Code) for the given key and message.
+
+    Args:
+        key:     The secret key (str or bytes).
+        message: The message to authenticate (str or bytes).
+
+    Returns:
+        64-character lowercase hex digest.
+
+    Examples:
+        >>> import anch
+        >>> mac = anch.hmac_anch("secret_key", "hello world")
+        >>> len(mac)
+        64
+    """
+    key_bytes = _encode(key)
+    msg_bytes = _encode(message)
+
+    block_size = 64  # ANCH internal state size is 64 bytes
+
+    # If key is longer than block size, hash it first
+    if len(key_bytes) > block_size:
+        key_bytes = bytes.fromhex(hash(key_bytes))
+
+    # Pad key with zeros to block_size
+    if len(key_bytes) < block_size:
+        key_bytes = key_bytes.ljust(block_size, b"\x00")
+
+    # Compute ipad and opad
+    ipad = bytes(b ^ 0x36 for b in key_bytes)
+    opad = bytes(b ^ 0x5C for b in key_bytes)
+
+    # Inner hash: H((K ^ ipad) || message)
+    inner_hash_hex = hash(ipad + msg_bytes)
+    inner_hash_bytes = bytes.fromhex(inner_hash_hex)
+
+    # Outer hash: H((K ^ opad) || inner_hash)
+    return hash(opad + inner_hash_bytes)
+
+
+def hmac_anch_verify(key: Union[str, bytes], message: Union[str, bytes], mac: str) -> bool:
+    """
+    Verify the HMAC-ANCH of a message using constant-time comparison.
+
+    Args:
+        key:     The secret key.
+        message: The message.
+        mac:     Expected 64-character hex MAC.
+
+    Returns:
+        True if valid, False otherwise.
+    """
+    computed = hmac_anch(key, message)
+    return hmac.compare_digest(computed.lower(), mac.lower())
+

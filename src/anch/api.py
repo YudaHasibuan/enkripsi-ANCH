@@ -18,7 +18,7 @@ from anch.benchmark import BenchmarkSuite
 app = FastAPI(
     title="ANCH adaptif neural chaotic hashing API",
     description="REST API endpoints for the experimental ANCH Hashing framework.",
-    version="0.2.0"
+    version="1.0.0"
 )
 
 # Enable CORS for frontend integration
@@ -71,6 +71,22 @@ class EntropyResponse(BaseModel):
 class BenchmarkRequest(BaseModel):
     samples: int = Field(default=50, ge=5, le=500, description="Number of samples to run for the benchmark")
 
+class HmacRequest(BaseModel):
+    key: str = Field(..., description="Secret key for HMAC")
+    message: str = Field(..., description="Message payload to authenticate")
+
+class HmacResponse(BaseModel):
+    mac: str = Field(..., description="64-character hexadecimal HMAC-ANCH digest")
+    time_taken_ms: float = Field(..., description="Time taken to compute the HMAC in milliseconds")
+
+class HmacVerifyRequest(BaseModel):
+    key: str = Field(..., description="Secret key for HMAC")
+    message: str = Field(..., description="Message payload")
+    mac: str = Field(..., description="Expected 64-character hexadecimal HMAC-ANCH digest")
+
+class HmacVerifyResponse(BaseModel):
+    verified: bool = Field(..., description="True if the computed HMAC matches the expected HMAC")
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -80,13 +96,15 @@ def read_root():
     return {
         "status": "online",
         "framework": "ANCH (Adaptive Neural Chaotic Hash)",
-        "version": "0.2.0",
+        "version": "1.0.0",
         "endpoints": [
             "POST /hash",
             "POST /verify",
             "POST /avalanche",
             "POST /entropy",
-            "POST /benchmark"
+            "POST /benchmark",
+            "POST /hmac",
+            "POST /hmac/verify"
         ]
     }
 
@@ -179,5 +197,26 @@ def run_benchmark(req: BenchmarkRequest):
         suite = BenchmarkSuite(samples=req.samples)
         report = suite.run_all()
         return report
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/hmac", response_model=HmacResponse)
+def compute_hmac(req: HmacRequest):
+    try:
+        t0 = time.perf_counter()
+        mac = anch.hmac_anch(req.key, req.message)
+        t1 = time.perf_counter()
+        return HmacResponse(
+            mac=mac,
+            time_taken_ms=(t1 - t0) * 1000
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/hmac/verify", response_model=HmacVerifyResponse)
+def verify_hmac(req: HmacVerifyRequest):
+    try:
+        is_valid = anch.hmac_anch_verify(req.key, req.message, req.mac)
+        return HmacVerifyResponse(verified=is_valid)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

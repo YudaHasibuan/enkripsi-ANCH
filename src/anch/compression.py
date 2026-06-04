@@ -93,15 +93,51 @@ def initialize_state(data: bytes, params: dict) -> bytearray:
 # Compression round
 # ---------------------------------------------------------------------------
 
+def generate_sbox(chaos_bytes: bytes) -> list[int]:
+    """
+    Generate a dynamic S-Box (permutation of 0..255) using chaos-derived bytes.
+    Uses a Fisher-Yates shuffle seeded by the chaos bytes.
+    """
+    sbox = list(range(256))
+    if not chaos_bytes:
+        return sbox
+
+    n = len(chaos_bytes)
+    # LCG-like shuffle to ensure determinism and good mixing
+    state = int.from_bytes(chaos_bytes[:8].ljust(8, b"\x00"), "big")
+    a, c, m = 6364136223846793005, 1442695040888963407, 2**64
+
+    for i in range(255, 0, -1):
+        state = (a * state + c) % m
+        chaos_byte = chaos_bytes[i % n]
+        j = (state ^ chaos_byte) % (i + 1)
+        sbox[i], sbox[j] = sbox[j], sbox[i]
+
+    return sbox
+
+
+def apply_sbox(state: bytearray, sbox: list[int]) -> bytearray:
+    """Substitute each byte in the state using the given S-Box."""
+    for i in range(len(state)):
+        state[i] = sbox[state[i]]
+    return state
+
+
+# ---------------------------------------------------------------------------
+# Compression round
+# ---------------------------------------------------------------------------
+
 def compression_round(
     state: bytearray,
     round_key: int,
     rotations: list[int],
+    sbox: list[int] | None = None,
 ) -> bytearray:
     """
     Apply one compression round to the 64-byte state.
 
     The round operates on 8 words (64-bit each):
+      0. Apply dynamic S-Box byte substitution if provided.
       1. XOR each word with the round key.
       2. Apply pairwise mixing with the round's rotation schedule.
       3. Perform a final butterfly mix across word halves.
@@ -110,10 +146,15 @@ def compression_round(
         state:     64-byte state bytearray.
         round_key: 64-bit round sub-key.
         rotations: List of rotation amounts.
+        sbox:      Optional dynamic S-Box mapping.
 
     Returns:
         Modified state bytearray.
     """
+    # Step 0: Apply S-Box substitution
+    if sbox is not None:
+        state = apply_sbox(state, sbox)
+
     # Unpack into 8 × 64-bit words
     words = list(struct.unpack(">8Q", bytes(state)))
 
@@ -177,7 +218,11 @@ def compress(
         )
         round_key = _u64(base_key ^ _rotate_left_64(chaos_word, rnd * 7))
 
-        state = compression_round(state, round_key, rotations)
+        # Dynamic S-Box generation for this round
+        sbox_chaos = chaos_bytes[chaos_offset : chaos_offset + 32]
+        sbox = generate_sbox(sbox_chaos)
+
+        state = compression_round(state, round_key, rotations, sbox)
 
     return state
 

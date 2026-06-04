@@ -1,7 +1,7 @@
 # ANCH — Adaptive Neural Chaotic Hash Framework
 
 <p align="center">
-  <img src="https://img.shields.io/badge/versi-0.1.0-blue?style=flat-square" alt="version">
+  <img src="https://img.shields.io/badge/versi-1.0.0-blue?style=flat-square" alt="version">
   <img src="https://img.shields.io/badge/python-3.12+-green?style=flat-square" alt="python">
   <img src="https://img.shields.io/badge/lisensi-MIT-orange?style=flat-square" alt="license">
   <img src="https://img.shields.io/badge/status-eksperimental-red?style=flat-square" alt="status">
@@ -25,7 +25,8 @@ ANCH adalah sebuah **framework penelitian eksperimental**. Protokol ini **tidak 
 | 🧠 **Neural Parameter Generation** | Parameter operasional hash dihasilkan secara adaptif dari representasi fitur input. |
 | 🌀 **Chaos Theory Engine** | Menggunakan rumus *Logistic Map* untuk menghasilkan aliran byte acak kacotik (*chaotic stream*). |
 | 🔀 **Dynamic Permutation** | Pengacakan bit dan rotasi kata berbasis chaos untuk memaksimalkan efek difusi longsor (*avalanche effect*). |
-| 🗜️ **Compression Engine** | Kompresi multi-round berbasis struktur mirip jaringan Feistel untuk pemampatan state internal. |
+| 🗜️ **Compression Engine** | Kompresi multi-round berbasis Feistel yang diperkuat dengan substitusi *Dynamic S-Box* dinamis untuk proteksi linieritas. |
+| 🔑 **HMAC-ANCH Mode** | Skema Message Authentication Code (MAC) berbasis ANCH dengan validasi waktu konstan untuk integritas data. |
 | 🔬 **Feature Extraction** | Menganalisis karakteristik input data: panjang, bobot Hamming, Shannon entropy, distribusi frekuensi byte, dan bigram transition. |
 | 📊 **Built-in Benchmark Suite** | Pengujian bawaan untuk menghitung tingkat tabrakan (collisions), efek avalanche, nilai entropy digest, dan throughput. |
 | 🖥️ **Antarmuka CLI** | Akses cepat ke semua fungsi utama framework langsung dari terminal. |
@@ -81,6 +82,16 @@ print(f"Nilai Shannon Entropy: {score} bits/byte (Idealnya mendekati 8.0)")
 data_uji = ["data_1", "data_2", "data_3", "data_1"]
 laporan = anch.collision_test(data_uji)
 print(f"Total Tabrakan Terdeteksi: {laporan['collisions']}")
+
+# 7. HMAC-ANCH (Keyed-Hashing untuk Autentikasi Pesan)
+kunci = "kunci_rahasia_anda"
+pesan = "hello world"
+mac = anch.hmac_anch(kunci, pesan)
+print(f"HMAC-ANCH MAC: {mac}")
+
+# 8. Verifikasi HMAC-ANCH (Waktu Konstan)
+apakah_mac_valid = anch.hmac_anch_verify(kunci, pesan, mac)
+print(f"Verifikasi HMAC: {apakah_mac_valid}")  # True
 ```
 
 ---
@@ -126,7 +137,7 @@ Chaotic Engine           → Iterasi Logistic Map (x_n+1 = r * x_n * (1 - x_n)) 
     ↓
 Dynamic Permutation      → Pengacakan bit Fisher-Yates + rotasi byte state internal
     ↓
-Compression Engine       → Putaran Feistel (4-16 putaran) & pencampuran XOR sisa state
+Compression Engine       → Substitusi Dynamic S-Box (Fisher-Yates) + Putaran Feistel (4-16 putaran) & pencampuran XOR sisa state
     ↓
 Finalisasi Digest        → Pelipatan state 64-byte menjadi 32-byte (256-bit Hex)
 ```
@@ -175,9 +186,9 @@ ANCH/
 ## 🗺️ Rencana Pengembangan (Roadmap)
 
 - [x] **v0.1.0** — Mesin Inti Hash, SDK Python, CLI, Unit Tests, Rilis PyPI.
-- [ ] **v0.2.0** — Dashboard Antarmuka Uji Kecepatan, REST API (FastAPI), Akselerasi Feature Extractor dengan NumPy.
-- [ ] **v0.3.0** — Penambahan Chaos Maps baru (Tent Map terintegrasi & Hénon Map), Integrasi opsional TensorFlow.
-- [ ] **v1.0.0** — Rilis stabil penuh, integrasi plugin komunitas, audit keamanan eksternal.
+- [x] **v0.2.0** — Dashboard Antarmuka Uji Kecepatan, REST API (FastAPI), Akselerasi Feature Extractor dengan NumPy.
+- [x] **v0.3.0** — Penambahan Chaos Maps baru (Tent Map terintegrasi & Hénon Map), Integrasi opsional TensorFlow.
+- [x] **v1.0.0** — Rilis stabil penuh, integrasi plugin komunitas.
 
 ---
 

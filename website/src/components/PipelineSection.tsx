@@ -17,7 +17,7 @@ const stages = [
   { id: "neural",      label: "Neural Parameter Gen",     icon: BrainCircuit, desc: "Seed · r-value · Rotations · Compression key",   color: "var(--anch-purple-bright)" },
   { id: "chaos",       label: "Chaotic Engine",           icon: Activity,     desc: "Logistic map → chaos byte stream",               color: "var(--anch-orange)" },
   { id: "permutation", label: "Dynamic Permutation",      icon: Shuffle,      desc: "Bit shuffle · Word rotation · Diffusion",        color: "var(--anch-green)" },
-  { id: "compression", label: "Compression Engine",       icon: Minimize2,    desc: "Feistel rounds · State folding",                 color: "var(--anch-cyan)" },
+  { id: "compression", label: "Compression Engine",       icon: Minimize2,    desc: "Dynamic S-Box · Feistel rounds · State folding", color: "var(--anch-cyan)" },
   { id: "digest",      label: "ANCH Digest (256-bit)",    icon: Lock,         desc: "64-character hex · Constant-time verify",        color: "var(--anch-purple-bright)" },
 ];
 
@@ -164,7 +164,7 @@ export default function PipelineSection() {
                   )}
                   {stage.id === "compression" && (
                     <div className="code-block" style={{ fontSize: "0.82rem", background: "rgba(6, 4, 15, 0.85)", border: "1px solid rgba(124,93,250,0.2)" }}>
-                      <span className="cm"># compression.py — 4–16 Feistel rounds</span>{"\n"}
+                      <span className="cm"># compression.py — Dynamic S-Box + 4–16 Feistel rounds</span>{"\n"}
                       state = <span className="fn">compress</span>(state, params, chaos_b)
                     </div>
                   )}

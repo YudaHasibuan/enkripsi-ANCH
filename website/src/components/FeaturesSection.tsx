@@ -40,8 +40,8 @@ const features = [
     title: "Multi-round Compression",
     badge: "compression.py",
     badgeClass: "badge-green",
-    desc: "4–16 Feistel-style compression rounds (count determined by neural parameters) mix the 64-byte state. Each round uses a unique chaos-derived sub-key.",
-    detail: "Pairwise mixing + butterfly cross-mixing + word-level diffusion chain. Final fold collapses 64→32 bytes.",
+    desc: "4–16 Feistel-style compression rounds (count determined by neural parameters) mix the 64-byte state. Each round features a dynamically generated S-Box mapping.",
+    detail: "Combines Fisher-Yates dynamic S-Box generation using chaos bytes, Feistel mixing, butterfly cross-mixing, and a final fold to collapse 64→32 bytes.",
   },
   {
     icon: Binary,
@@ -61,11 +61,11 @@ const features = [
   },
   {
     icon: Terminal,
-    title: "Full CLI Interface",
-    badge: "__main__.py",
+    title: "Full CLI & HMAC API",
+    badge: "core.py & CLI",
     badgeClass: "badge-orange",
-    desc: "Every public API function is accessible via the `anch` command — hash, verify, hash-file, avalanche, entropy, and benchmark — with clean, human-readable output.",
-    detail: "Installed automatically as an entry point when you pip install anch-hash.",
+    desc: "Full CLI access to hash, verify, avalanche, entropy, and benchmark tools, paired with HMAC-ANCH support for keyed message authentication.",
+    detail: "Added hmac_anch(key, message) and hmac_anch_verify(key, message, mac) with constant-time verification for secure integrity checks.",
   },
   {
     icon: Shield,

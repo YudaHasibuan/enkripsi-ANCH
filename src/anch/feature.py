@@ -68,18 +68,23 @@ def extract_features(data: bytes) -> dict:
 
         # 2. Byte frequency distribution
         freq, _ = np.histogram(arr, bins=np.arange(257))
-        byte_freq = (freq / n).tolist()
+        byte_freq = [float(f) / n for f in freq]
 
         # 3. Shannon entropy
-        p = freq[freq > 0] / n
-        entropy_val = float(-np.sum(p * np.log2(p)))
+        entropy_val = 0.0
+        for f in byte_freq:
+            if f > 0.0:
+                entropy_val -= f * math.log2(f)
 
         # 4. Checksum (XOR fold)
         checksum = int(np.bitwise_xor.reduce(arr))
 
         # 5. Mean and variance of byte values
-        mean = float(arr.mean())
-        variance = float(arr.var())
+        mean = sum(data) / n
+        var_sum = 0.0
+        for b in data:
+            var_sum += (float(b) - mean) ** 2
+        variance = var_sum / n
 
         # 6. Bigram frequency hash
         ngram_hash = [0.0] * 64
@@ -87,8 +92,8 @@ def extract_features(data: bytes) -> dict:
             pairs = (arr[:-1].astype(np.uint16) << 8) | arr[1:]
             buckets = pairs % 64
             bucket_counts = np.bincount(buckets, minlength=64)[:64]
-            max_ngram = bucket_counts.max() or 1.0
-            ngram_hash = (bucket_counts / max_ngram).tolist()
+            max_ngram = int(bucket_counts.max()) or 1
+            ngram_hash = [float(c) / max_ngram for c in bucket_counts]
     else:
         # -----------------------------------------------------------------
         # Fallback Pure Python (Zero Dependencies)
@@ -115,7 +120,10 @@ def extract_features(data: bytes) -> dict:
 
         # Mean and variance of byte values
         mean = sum(data) / n
-        variance = sum((b - mean) ** 2 for b in data) / n
+        var_sum = 0.0
+        for b in data:
+            var_sum += (float(b) - mean) ** 2
+        variance = var_sum / n
 
         # Bigram frequency hash — compact 64-element vector
         ngram_hash = [0.0] * 64
@@ -167,14 +175,14 @@ def build_feature_vector(features: dict) -> list[float]:
 
     # Downsample byte_freq 256 → 64 (sum groups of 4)
     bf = features["byte_freq"]
-    bf64 = [sum(bf[i * 4 : i * 4 + 4]) for i in range(64)]
+    bf64 = [bf[i * 4] + bf[i * 4 + 1] + bf[i * 4 + 2] + bf[i * 4 + 3] for i in range(64)]
 
     vector = (
         [length_norm, bit_norm, entropy_norm, checksum_norm, mean_norm, variance_norm]
         + bf64
         + features["ngram_hash"]
     )
-    return vector
+    return [0.0 if x == 0.0 else x for x in vector]
 
 
 def compute_input_entropy(data: bytes) -> float:

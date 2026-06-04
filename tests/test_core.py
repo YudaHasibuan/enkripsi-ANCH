@@ -260,3 +260,45 @@ class TestCollisionTest:
         assert "collisions" in report
         assert "collision_pairs" in report
         assert "collision_rate" in report
+
+
+# ---------------------------------------------------------------------------
+# HMAC-ANCH
+# ---------------------------------------------------------------------------
+
+class TestHMAC:
+    def test_hmac_returns_string(self):
+        result = anch.hmac_anch("key", "message")
+        assert isinstance(result, str)
+        assert len(result) == 64
+
+    def test_hmac_deterministic(self):
+        assert anch.hmac_anch("key", "message") == anch.hmac_anch("key", "message")
+
+    def test_hmac_different_keys_different_macs(self):
+        assert anch.hmac_anch("key1", "message") != anch.hmac_anch("key2", "message")
+
+    def test_hmac_different_messages_different_macs(self):
+        assert anch.hmac_anch("key", "message1") != anch.hmac_anch("key", "message2")
+
+    def test_hmac_long_key(self):
+        long_key = "k" * 100
+        result = anch.hmac_anch(long_key, "message")
+        assert len(result) == 64
+
+    def test_hmac_verify_correct(self):
+        key = "secret_key"
+        msg = "data to authenticate"
+        mac = anch.hmac_anch(key, msg)
+        assert anch.hmac_anch_verify(key, msg, mac) is True
+
+    def test_hmac_verify_wrong_key(self):
+        msg = "data to authenticate"
+        mac = anch.hmac_anch("key1", msg)
+        assert anch.hmac_anch_verify("key2", msg, mac) is False
+
+    def test_hmac_verify_wrong_msg(self):
+        key = "secret_key"
+        mac = anch.hmac_anch(key, "msg1")
+        assert anch.hmac_anch_verify(key, "msg2", mac) is False
+

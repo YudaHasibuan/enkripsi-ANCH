@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "anch-hash"
-version = "0.1.0"
+version = "1.0.0"
 description = "ANCH — Adaptive Neural Chaotic Hash Framework: experimental hashing combining feature extraction, neural parameter generation, and chaos theory."
 readme = "README.md"
 license = { text = "MIT" }

@@ -8,7 +8,7 @@ An experimental adaptive hashing framework that combines:
   - Dynamic Permutation
   - Compression Engine
 
-Version: 0.1.0
+Version: 1.0.0
 """
 
 from anch.core import (
@@ -19,9 +19,11 @@ from anch.core import (
     avalanche,
     entropy,
     collision_test,
+    hmac_anch,
+    hmac_anch_verify,
 )
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 __author__ = "ANCH Framework Team"
 __all__ = [
     "hash",
@@ -31,4 +33,6 @@ __all__ = [
     "avalanche",
     "entropy",
     "collision_test",
+    "hmac_anch",
+    "hmac_anch_verify",
 ]

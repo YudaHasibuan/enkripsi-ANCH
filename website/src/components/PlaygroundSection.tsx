@@ -57,6 +57,35 @@ function simAvalanche(da: string, db: string): number {
   return (diff / 256) * 100;
 }
 
+function simHmac(key: string, message: string, rVal: number, rounds: number): string {
+  const block_size = 64;
+  let keyBytes = new TextEncoder().encode(key);
+  if (keyBytes.length > block_size) {
+    const hashedKey = simHash(key, rVal, rounds);
+    keyBytes = new Uint8Array(hashedKey.match(/.{2}/g)?.map(h => parseInt(h, 16)) ?? []);
+  }
+  const paddedKey = new Uint8Array(block_size);
+  paddedKey.set(keyBytes);
+  const ipad = new Uint8Array(block_size);
+  const opad = new Uint8Array(block_size);
+  for (let i = 0; i < block_size; i++) {
+    ipad[i] = paddedKey[i] ^ 0x36;
+    opad[i] = paddedKey[i] ^ 0x5C;
+  }
+  const msgBytes = new TextEncoder().encode(message);
+  const innerInput = new Uint8Array(block_size + msgBytes.length);
+  innerInput.set(ipad, 0);
+  innerInput.set(msgBytes, block_size);
+  const innerInputStr = Array.from(innerInput).map(b => String.fromCharCode(b)).join("");
+  const innerHashHex = simHash(innerInputStr, rVal, rounds);
+  const innerHashBytes = new Uint8Array(innerHashHex.match(/.{2}/g)?.map(h => parseInt(h, 16)) ?? []);
+  const outerInput = new Uint8Array(block_size + innerHashBytes.length);
+  outerInput.set(opad, 0);
+  outerInput.set(innerHashBytes, block_size);
+  const outerInputStr = Array.from(outerInput).map(b => String.fromCharCode(b)).join("");
+  return simHash(outerInputStr, rVal, rounds);
+}
+
 // Convert hex digest to a list of 256 boolean bits
 function hexToBits(hex: string): boolean[] {
   const bits: boolean[] = [];
@@ -73,10 +102,18 @@ function hexToBits(hex: string): boolean[] {
 export default function PlaygroundSection() {
   const [input, setInput] = useState("hello world");
   const [input2, setInput2] = useState("hello world!");
-  const [tab, setTab] = useState<"hash" | "avalanche" | "entropy">("hash");
+  const [tab, setTab] = useState<"hash" | "avalanche" | "entropy" | "hmac">("hash");
   const [chaosR, setChaosR] = useState(3.85);
   const [feistelRounds, setFeistelRounds] = useState(8);
   const [copied, setCopied] = useState(false);
+
+  // HMAC States
+  const [hmacKey, setHmacKey] = useState("secret_key");
+  const [hmacMessage, setHmacMessage] = useState("hello world");
+  const [apiHmac, setApiHmac] = useState("");
+  const [hmacCopied, setHmacCopied] = useState(false);
+  const [hmacVerifyInput, setHmacVerifyInput] = useState("");
+  const [hmacVerified, setHmacVerified] = useState<boolean | null>(null);
 
   // API Integration States
   const [isApiActive, setIsApiActive] = useState(false);
@@ -176,6 +213,53 @@ export default function PlaygroundSection() {
     };
   }, [input, input2, isApiActive]);
 
+  // Fetch real HMAC metrics when HMAC key or message change (if API is active)
+  useEffect(() => {
+    if (!isApiActive) return;
+
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const hmacRes = await fetch("http://localhost:8000/hmac", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: hmacKey, message: hmacMessage }),
+          signal: controller.signal
+        });
+        const hmacData = await hmacRes.json();
+        setApiHmac(hmacData.mac);
+      } catch (err: any) {
+        if (err.name !== "AbortError") {
+          console.error("HMAC API fetch failed", err);
+        }
+      }
+    }, 400);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [hmacKey, hmacMessage, isApiActive]);
+
+  const handleVerifyHmac = async () => {
+    if (isApiActive) {
+      try {
+        const res = await fetch("http://localhost:8000/hmac/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: hmacKey, message: hmacMessage, mac: hmacVerifyInput })
+        });
+        const data = await res.json();
+        setHmacVerified(data.verified);
+      } catch (e) {
+        console.error("HMAC verification failed", e);
+      }
+    } else {
+      const computed = simHmac(hmacKey, hmacMessage, chaosR, feistelRounds);
+      setHmacVerified(computed.toLowerCase() === hmacVerifyInput.trim().toLowerCase());
+    }
+  };
+
   // Compute final display outputs
   const simDigest1 = simHash(input, chaosR, feistelRounds);
   const simDigest2 = simHash(input2, chaosR, feistelRounds);
@@ -210,6 +294,7 @@ export default function PlaygroundSection() {
     { id: "hash" as const,      label: "Hash",      icon: Lock },
     { id: "avalanche" as const, label: "Avalanche", icon: Zap },
     { id: "entropy" as const,   label: "Entropy",   icon: BarChart3 },
+    { id: "hmac" as const,      label: "HMAC-ANCH", icon: Fingerprint },
   ];
 
   return (
@@ -522,6 +607,116 @@ export default function PlaygroundSection() {
 
               <div style={{ fontSize: "0.85rem", color: "var(--anch-text-dim)", lineHeight: 1.7, background: "rgba(124, 93, 250, 0.04)", border: "1px solid rgba(124,93,250,0.12)", padding: 18, borderRadius: 12 }}>
                 Higher entropy indicates that digest bytes are uniformly distributed across the output landscape. The chaotic mapping ensures that even simple inputs maps to high-entropy states, which blocks linear cryptanalysis attempts.
+              </div>
+            </div>
+          )}
+
+          {/* HMAC tab */}
+          {tab === "hmac" && (
+            <div>
+              <div className="grid-2" style={{ gap: 20, marginBottom: 24 }}>
+                <div>
+                  <label style={{ fontSize: "0.82rem", color: "var(--anch-text-dim)", marginBottom: 8, display: "block", fontWeight: 700 }}>Secret Key</label>
+                  <input
+                    id="playground-hmac-key"
+                    type="text"
+                    value={hmacKey}
+                    onChange={(e) => {
+                      setHmacKey(e.target.value);
+                      setHmacVerified(null);
+                    }}
+                    className="playground-input"
+                    placeholder="Enter HMAC key…"
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: "0.82rem", color: "var(--anch-text-dim)", marginBottom: 8, display: "block", fontWeight: 700 }}>Message Payload</label>
+                  <input
+                    id="playground-hmac-msg"
+                    type="text"
+                    value={hmacMessage}
+                    onChange={(e) => {
+                      setHmacMessage(e.target.value);
+                      setHmacVerified(null);
+                    }}
+                    className="playground-input"
+                    placeholder="Enter message to sign…"
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 28 }}>
+                <div style={{ fontSize: "0.8rem", color: "var(--anch-text-dim)", marginBottom: 8, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                  <Fingerprint size={14} style={{ color: "var(--anch-cyan)" }} />
+                  <span>Computed HMAC-ANCH MAC (256-bit / 64-char Hex)</span>
+                </div>
+                <div className="result-box" style={{ color: "var(--anch-cyan)", wordBreak: "break-all", fontSize: "0.88rem", background: "rgba(6, 4, 15, 0.8)", border: "1px solid rgba(124, 93, 250, 0.2)", minHeight: 74, display: "flex", alignItems: "center" }}>
+                  {isApiActive ? apiHmac : simHmac(hmacKey, hmacMessage, chaosR, feistelRounds)}
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(isApiActive ? apiHmac : simHmac(hmacKey, hmacMessage, chaosR, feistelRounds));
+                    setHmacCopied(true);
+                    setTimeout(() => setHmacCopied(false), 1500);
+                  }}
+                  className="btn-secondary"
+                  style={{ marginTop: 12, padding: "8px 16px", borderRadius: 8, fontSize: "0.78rem", gap: 6 }}
+                >
+                  {hmacCopied ? <Check size={12} style={{ color: "var(--anch-green)" }} /> : <Copy size={12} />}
+                  <span>{hmacCopied ? "Copied!" : "Copy MAC"}</span>
+                </button>
+              </div>
+
+              {/* Verification card */}
+              <div style={{ padding: 24, background: "rgba(6, 4, 15, 0.75)", border: "1px solid rgba(124, 93, 250, 0.15)", borderRadius: 18 }}>
+                <label style={{ fontSize: "0.82rem", color: "var(--anch-text-dim)", marginBottom: 8, display: "block", fontWeight: 700 }}>Verify HMAC Digest</label>
+                <div style={{ display: "flex", gap: 12 }} className="demo-grid">
+                  <input
+                    id="playground-hmac-verify-input"
+                    type="text"
+                    value={hmacVerifyInput}
+                    onChange={(e) => setHmacVerifyInput(e.target.value)}
+                    className="playground-input"
+                    placeholder="Paste MAC to verify…"
+                    style={{ flexGrow: 1 }}
+                  />
+                  <button
+                    onClick={handleVerifyHmac}
+                    className="btn-primary"
+                    style={{ padding: "0 24px", height: 50, borderRadius: 10, fontSize: "0.85rem" }}
+                  >
+                    Verify
+                  </button>
+                </div>
+
+                {hmacVerified !== null && (
+                  <div style={{ 
+                    marginTop: 16, 
+                    padding: "12px 18px", 
+                    borderRadius: 8, 
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                    border: "1px solid",
+                    backgroundColor: hmacVerified ? "rgba(0, 255, 170, 0.08)" : "rgba(255, 107, 53, 0.08)",
+                    borderColor: hmacVerified ? "rgba(0, 255, 170, 0.3)" : "rgba(255, 107, 53, 0.3)",
+                    color: hmacVerified ? "var(--anch-green)" : "var(--anch-orange)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8
+                  }}>
+                    {hmacVerified ? (
+                      <>
+                        <Check size={16} />
+                        <span>Verification Successful: Signature matches! Authenticity and integrity verified.</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>✕</span>
+                        <span>Verification Failed: Signature mismatch! The message or key is incorrect.</span>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}

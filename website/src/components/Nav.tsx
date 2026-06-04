@@ -35,7 +35,7 @@ export default function Nav() {
             boxShadow: scrolled ? "0 0 15px rgba(0, 240, 255, 0.4)" : "0 0 15px rgba(124, 93, 250, 0.4)"
           }}>A</div>
           <span style={{ fontWeight: 800, fontSize: "1.1rem", color: "var(--anch-text)", letterSpacing: "-0.02em" }}>
-            ANCH <span style={{ color: scrolled ? "var(--anch-cyan)" : "var(--anch-purple-bright)", fontWeight: 600, fontSize: "0.78rem", letterSpacing: 0, marginLeft: 2 }}>v0.1.0</span>
+            ANCH <span style={{ color: scrolled ? "var(--anch-cyan)" : "var(--anch-purple-bright)", fontWeight: 600, fontSize: "0.78rem", letterSpacing: 0, marginLeft: 2 }}>v1.0.0</span>
           </span>
         </Link>
 

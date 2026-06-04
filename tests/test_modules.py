@@ -166,6 +166,21 @@ class TestCompression:
         params = neural.generate_parameters(vec)
         return data, params
 
+    def test_generate_sbox(self):
+        chaos_bytes = bytes(range(64))
+        sbox = compression.generate_sbox(chaos_bytes)
+        assert len(sbox) == 256
+        assert sorted(sbox) == list(range(256))  # It must be a permutation
+
+    def test_apply_sbox(self):
+        state = bytearray(range(64))
+        sbox = list(range(256))
+        sbox.reverse()
+        original = bytes(state)
+        compression.apply_sbox(state, sbox)
+        assert bytes(state) != original
+        assert state[0] == 255
+
     def test_initialize_state_length(self):
         data, params = self._setup()
         state = compression.initialize_state(data, params)
